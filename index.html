@@ -1468,20 +1468,34 @@ document.getElementById('categoryForm').addEventListener('submit', (e) => {
 
 document.getElementById('accountForm').addEventListener('submit', (e) => {
     e.preventDefault();
+
+    // Obtener los valores del formulario
     const newAccountName = document.getElementById('newAccount').value.trim();
     const initialBalance = parseFloat(document.getElementById('initialBalance').value) || 0;
     
+    // Solo si se ha introducido un nombre de cuenta, continuar
     if (newAccountName) {
+        // Crear un objeto para la nueva cuenta
         const newAccount = {
             name: newAccountName,
             balance: initialBalance
         };
+
+        // Obtener el array de cuentas guardado o crear uno nuevo si no existe
         const accounts = getFromLocalStorage('accounts') || [];
+        
+        // Añadir la nueva cuenta al array
         accounts.push(newAccount);
+        
+        // Guardar el array actualizado en localStorage
         saveToLocalStorage('accounts', accounts);
-        setupSettings(); // Actualiza la lista en la interfaz
+        
+        // Limpiar los campos del formulario
         document.getElementById('newAccount').value = '';
         document.getElementById('initialBalance').value = '0';
+        
+        // Actualizar la lista en la interfaz para mostrar la nueva cuenta
+        setupSettings();
     }
 });
 
@@ -1575,3 +1589,4 @@ document.getElementById('addRecurringBtn').addEventListener('click', showRecurri
 </body>
 
 </html>
+
