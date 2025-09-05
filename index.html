@@ -1421,33 +1421,78 @@
         document.getElementById('brokerBuyForm').addEventListener('submit', saveAssetBuy);
         document.getElementById('brokerSellForm').addEventListener('submit', saveAssetSell);
 
-        // Settings events
-        document.getElementById('categoryForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const newCat = document.getElementById('newCategory').value.trim();
-            if (newCat) {
-                addSetting('categories', newCat);
-                document.getElementById('newCategory').value = '';
-            }
-        });
-        document.getElementById('accountForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const newAcc = document.getElementById('newAccount').value.trim();
-            const initialBalance = document.getElementById('initialBalance').value;
-            if (newAcc) {
-                addSetting('accounts', newAcc.name, initialBalance);
-                document.getElementById('newAccount').value = '';
-                document.getElementById('initialBalance').value = '0';
-            }
-        });
-        document.getElementById('accountingForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const newAccountingBook = document.getElementById('newAccountingBook').value.trim();
-            if (newAccountingBook) {
-                addSetting('accountingBooks', newAccountingBook);
-                document.getElementById('newAccountingBook').value = '';
-            }
-        });
+        // Funciones para manejar la sección de Configuración
+const setupSettings = () => {
+    // Cargar y mostrar las cuentas
+    const accounts = getFromLocalStorage('accounts') || [];
+    const accountList = document.getElementById('accountList');
+    accountList.innerHTML = '';
+    accounts.forEach(account => {
+        const accountSpan = document.createElement('span');
+        accountSpan.textContent = account.name;
+        accountSpan.classList.add('bg-gray-200', 'text-gray-800', 'text-sm', 'font-medium', 'px-2.5', 'py-0.5', 'rounded-full');
+        accountList.appendChild(accountSpan);
+    });
+
+    // Cargar y mostrar las categorías y contabilidades (si existen)
+    const categories = getFromLocalStorage('categories') || [];
+    const categoryList = document.getElementById('categoryList');
+    categoryList.innerHTML = '';
+    categories.forEach(category => {
+        const categorySpan = document.createElement('span');
+        categorySpan.textContent = category;
+        categorySpan.classList.add('bg-gray-200', 'text-gray-800', 'text-sm', 'font-medium', 'px-2.5', 'py-0.5', 'rounded-full');
+        categoryList.appendChild(categorySpan);
+    });
+    
+    const accountingBooks = getFromLocalStorage('accountingBooks') || [];
+    const accountingList = document.getElementById('accountingList');
+    accountingList.innerHTML = '';
+    accountingBooks.forEach(book => {
+        const bookSpan = document.createElement('span');
+        bookSpan.textContent = book;
+        bookSpan.classList.add('bg-gray-200', 'text-gray-800', 'text-sm', 'font-medium', 'px-2.5', 'py-0.5', 'rounded-full');
+        accountingList.appendChild(bookSpan);
+    });
+};
+
+// Eventos de los formularios en la sección de Configuración
+document.getElementById('categoryForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const newCategory = document.getElementById('newCategory').value.trim();
+    if (newCategory) {
+        addSetting('categories', newCategory);
+        document.getElementById('newCategory').value = '';
+    }
+});
+
+document.getElementById('accountForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const newAccountName = document.getElementById('newAccount').value.trim();
+    const initialBalance = parseFloat(document.getElementById('initialBalance').value) || 0;
+    
+    if (newAccountName) {
+        const newAccount = {
+            name: newAccountName,
+            balance: initialBalance
+        };
+        const accounts = getFromLocalStorage('accounts') || [];
+        accounts.push(newAccount);
+        saveToLocalStorage('accounts', accounts);
+        setupSettings(); // Actualiza la lista en la interfaz
+        document.getElementById('newAccount').value = '';
+        document.getElementById('initialBalance').value = '0';
+    }
+});
+
+document.getElementById('accountingForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const newAccountingBook = document.getElementById('newAccountingBook').value.trim();
+    if (newAccountingBook) {
+        addSetting('accountingBooks', newAccountingBook);
+        document.getElementById('newAccountingBook').value = '';
+    }
+});
 
 // Funciones para manejar la visibilidad de la sección de transacciones
 const showTransactionMain = () => {
@@ -1528,4 +1573,5 @@ document.getElementById('addRecurringBtn').addEventListener('click', showRecurri
         initializeFinancesApp();
     </script>
 </body>
+
 </html>
