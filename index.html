@@ -88,15 +88,36 @@
                 </div>
 
                 <div class="bg-white p-6 rounded-lg shadow-sm">
-                    <h2 class="text-lg font-semibold text-gray-800 mb-4">Ingresos vs Gastos</h2>
+                    <h2 class="text-lg font-semibold text-gray-800 mb-4">Ingresos vs Gastos (Mes Actual)</h2>
                     <canvas id="incomeExpenseChart"></canvas>
                 </div>
 
                 <div class="bg-white p-6 rounded-lg shadow-sm">
-                    <h2 class="text-lg font-semibold text-gray-800 mb-4">Gastos por Categoría</h2>
-                    <canvas id="expenseCategoryChart"></canvas>
+                    <h2 class="text-lg font-semibold text-gray-800 mb-4">Análisis por Categoría</h2>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 items-end">
+                        <div class="col-span-2 md:col-span-1">
+                            <label for="categoryAnalysisType" class="block text-sm font-medium text-gray-700">Tipo</label>
+                            <select id="categoryAnalysisType" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2">
+                                <option value="expense">Gastos</option>
+                                <option value="income">Ingresos</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="categoryAnalysisStartDate" class="block text-sm font-medium text-gray-700">Inicio</label>
+                            <input type="date" id="categoryAnalysisStartDate" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2">
+                        </div>
+                        <div>
+                            <label for="categoryAnalysisEndDate" class="block text-sm font-medium text-gray-700">Fin</label>
+                            <input type="date" id="categoryAnalysisEndDate" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2">
+                        </div>
+                        <div class="col-span-2 md:col-span-4">
+                             <button id="updateCategoryChartBtn" class="w-full bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-indigo-700 transition duration-300">
+                                Actualizar Gráfico
+                            </button>
+                        </div>
+                    </div>
+                    <canvas id="categoryAnalysisChart"></canvas>
                 </div>
-
                 <div class="lg:col-span-3 bg-white p-6 rounded-lg shadow-sm">
                     <h2 class="text-lg font-semibold text-gray-800 mb-4">Ahorro Mensual (Últimos 6 Meses)</h2>
                     <canvas id="cashFlowChart"></canvas>
@@ -1275,12 +1296,12 @@
         };
 
         // Gráficos y Dashboard
-        let incomeExpenseChart, expenseCategoryChart, cashFlowChart;
+        let incomeExpenseChart, categoryAnalysisChart, cashFlowChart;
 
         const renderDashboard = (transactions) => {
             renderAccountsSummary(transactions);
             renderIncomeExpenseChart(transactions);
-            renderExpenseCategoryChart(transactions);
+            renderCategoryAnalysisChart();
             renderCashFlowChart(transactions);
         };
 
@@ -1344,8 +1365,14 @@
                 const date = t.data().date.toDate();
                 return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
             });
-            const income = currentMonthTransactions.filter(t => t.data().type === 'income').reduce((sum, t) => sum + t.data().amount, 0);
-            const expense = currentMonthTransactions.filter(t => t.data().type === 'expense' && t.data().category !== 'Transferencia').reduce((sum, t) => sum + t.data().amount, 0);
+            
+            const income = currentMonthTransactions
+                .filter(t => t.data().type === 'income' && t.data().category !== 'Transferencia' && t.data().category !== 'Saldo Inicial')
+                .reduce((sum, t) => sum + t.data().amount, 0);
+                
+            const expense = currentMonthTransactions
+                .filter(t => t.data().type === 'expense' && t.data().category !== 'Transferencia')
+                .reduce((sum, t) => sum + t.data().amount, 0);
 
             const data = {
                 labels: ['Ingresos', 'Gastos'],
@@ -1371,11 +1398,26 @@
             incomeExpenseChart = new Chart(document.getElementById('incomeExpenseChart'), config);
         };
 
-        const renderExpenseCategoryChart = (transactions) => {
-            const expenseTransactions = transactions.filter(t => t.data().type === 'expense' && t.data().category !== 'Transferencia');
-            const categories = expenseTransactions.reduce((acc, t) => {
-                const category = t.data().category;
-                acc[category] = (acc[category] || 0) + t.data().amount;
+        const renderCategoryAnalysisChart = () => {
+            const type = document.getElementById('categoryAnalysisType').value;
+            const startDateValue = document.getElementById('categoryAnalysisStartDate').value;
+            const endDateValue = document.getElementById('categoryAnalysisEndDate').value;
+
+            let filtered = allUserTransactions.filter(t => t.type === type && t.category !== 'Transferencia' && t.category !== 'Saldo Inicial');
+
+            if (startDateValue) {
+                const start = new Date(startDateValue);
+                start.setHours(0,0,0,0);
+                filtered = filtered.filter(t => t.date.toDate() >= start);
+            }
+            if (endDateValue) {
+                const end = new Date(endDateValue);
+                end.setHours(23,59,59,999);
+                filtered = filtered.filter(t => t.date.toDate() <= end);
+            }
+            
+            const categories = filtered.reduce((acc, t) => {
+                acc[t.category] = (acc[t.category] || 0) + t.amount;
                 return acc;
             }, {});
 
@@ -1385,13 +1427,14 @@
                     data: Object.values(categories),
                     backgroundColor: [
                         '#4c51bf', '#63b3ed', '#4fd1c5', '#f6ad55', '#e53e3e',
-                        '#d53f8c', '#a0aec0', '#9f7aea', '#38b2ac'
-                    ]
+                        '#d53f8c', '#a0aec0', '#9f7aea', '#38b2ac', '#ed8936'
+                    ],
+                    hoverOffset: 4
                 }]
             };
 
             const config = {
-                type: 'pie',
+                type: 'doughnut',
                 data: data,
                 options: {
                     responsive: true,
@@ -1402,8 +1445,8 @@
                 }
             };
 
-            if (expenseCategoryChart) expenseCategoryChart.destroy();
-            expenseCategoryChart = new Chart(document.getElementById('expenseCategoryChart'), config);
+            if (categoryAnalysisChart) categoryAnalysisChart.destroy();
+            categoryAnalysisChart = new Chart(document.getElementById('categoryAnalysisChart'), config);
         };
 
         const renderCashFlowChart = (transactions) => {
@@ -1411,7 +1454,6 @@
             const monthLabelsShort = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
             const today = new Date();
             
-            // 1. Initialize data for the last 6 months
             for (let i = 5; i >= 0; i--) {
                 const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
                 const key = `${d.getFullYear()}-${d.getMonth()}`;
@@ -1425,16 +1467,14 @@
             const sixMonthsAgo = new Date(today.getFullYear(), today.getMonth() - 5, 1);
             sixMonthsAgo.setHours(0,0,0,0);
 
-            // 2. Filter transactions for the last 6 months
             const recentTransactions = transactions.filter(t => t.data().date.toDate() >= sixMonthsAgo);
 
-            // 3. Aggregate data
             recentTransactions.forEach(tDoc => {
                 const t = tDoc.data();
                 const date = t.date.toDate();
                 const key = `${date.getFullYear()}-${date.getMonth()}`;
                 if (monthlyData[key]) {
-                    if (t.type === 'income' && t.category !== 'Transferencia') {
+                    if (t.type === 'income' && t.category !== 'Transferencia' && t.category !== 'Saldo Inicial') {
                         monthlyData[key].income += t.amount;
                     } else if (t.type === 'expense' && t.category !== 'Transferencia') {
                         monthlyData[key].expense += t.amount;
@@ -1474,7 +1514,6 @@
                     },
                     scales: {
                         y: {
-                            beginAtZero: true,
                             ticks: {
                                 callback: (value) => `${value} €`
                             }
@@ -1487,8 +1526,9 @@
             cashFlowChart = new Chart(document.getElementById('cashFlowChart'), config);
         };
 
-
         // Event listeners
+        document.getElementById('updateCategoryChartBtn').addEventListener('click', renderCategoryAnalysisChart);
+
         document.getElementById('registerTransactionBtn').addEventListener('click', () => {
             document.getElementById('transactionMain').classList.add('hidden');
             document.getElementById('transactionHistory').classList.add('hidden');
@@ -1609,6 +1649,13 @@
         });
 
         const initializeFinancesApp = () => {
+             // Set default dates for the new chart
+            const today = new Date();
+            const firstDay = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
+            const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0).toISOString().split('T')[0];
+            document.getElementById('categoryAnalysisStartDate').value = firstDay;
+            document.getElementById('categoryAnalysisEndDate').value = lastDay;
+
              onAuthStateChanged(auth, (user) => {
                 if (user) {
                     userId = user.uid;
