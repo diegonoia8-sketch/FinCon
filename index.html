@@ -34,10 +34,10 @@
                 opacity: .5;
             }
         }
-.pixelate-text {
-    filter: blur(5px);
-    transition: filter 0.3s ease-in-out;
-}
+        .pixelate-text {
+            filter: blur(5px);
+            transition: filter 0.3s ease-in-out;
+        }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col">
@@ -72,20 +72,20 @@
         <main class="flex-grow p-4 md:p-6 pb-20 overflow-y-auto">
             <div id="dashboard" class="tab-content grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 <div class="bg-white p-6 rounded-lg shadow-sm">
-    <div class="flex items-center justify-between mb-4">
-        <h2 class="text-lg font-semibold text-gray-800">Resumen de Cuentas</h2>
-        <div class="flex items-center">
-            <label for="toggleBalances" class="text-sm text-gray-600 mr-2">Ocultar saldos</label>
-            <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" value="" id="toggleBalances" class="sr-only peer">
-                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"></div>
-            </label>
-        </div>
-    </div>
-    <div id="accountsSummary" class="space-y-4">
-        <p class="text-sm text-gray-500 loading-text">Cargando resumen de cuentas...</p>
-    </div>
-</div>
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-lg font-semibold text-gray-800">Resumen de Cuentas</h2>
+                        <div class="flex items-center">
+                            <label for="toggleBalances" class="text-sm text-gray-600 mr-2">Ocultar saldos</label>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" value="" id="toggleBalances" class="sr-only peer">
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"></div>
+                            </label>
+                        </div>
+                    </div>
+                    <div id="accountsSummary" class="space-y-4">
+                        <p class="text-sm text-gray-500 loading-text">Cargando resumen de cuentas...</p>
+                    </div>
+                </div>
 
                 <div class="bg-white p-6 rounded-lg shadow-sm">
                     <h2 class="text-lg font-semibold text-gray-800 mb-4">Ingresos vs Gastos</h2>
@@ -284,6 +284,44 @@
                         &larr; Volver
                     </button>
                     <h2 class="text-lg font-semibold text-gray-800 mb-4">Historial de Transacciones</h2>
+
+                    <form id="filterForm" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6 p-4 border rounded-lg bg-gray-50 items-end">
+                        <div>
+                            <label for="filterStartDate" class="block text-sm font-medium text-gray-700">Fecha Inicio</label>
+                            <input type="date" id="filterStartDate" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2">
+                        </div>
+                        <div>
+                            <label for="filterEndDate" class="block text-sm font-medium text-gray-700">Fecha Fin</label>
+                            <input type="date" id="filterEndDate" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2">
+                        </div>
+                        <div>
+                            <label for="filterCategory" class="block text-sm font-medium text-gray-700">Categoría</label>
+                            <select id="filterCategory" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2">
+                                <option value="">Todas</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="filterAccount" class="block text-sm font-medium text-gray-700">Cuenta</label>
+                            <select id="filterAccount" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2">
+                                <option value="">Todas</option>
+                            </select>
+                        </div>
+                         <div>
+                            <label for="filterSort" class="block text-sm font-medium text-gray-700">Ordenar por</label>
+                            <select id="filterSort" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2">
+                                <option value="desc">Más recientes primero</option>
+                                <option value="asc">Más antiguas primero</option>
+                            </select>
+                        </div>
+                        <div class="col-span-1 md:col-span-2 lg:col-span-5 flex gap-4 mt-2">
+                            <button type="button" id="applyFiltersBtn" class="flex-1 bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-indigo-700 transition duration-300">
+                                Aplicar Filtros
+                            </button>
+                            <button type="button" id="clearFiltersBtn" class="flex-1 bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-gray-700 transition duration-300">
+                                Limpiar
+                            </button>
+                        </div>
+                    </form>
                     <div class="table-container">
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50 sticky top-0">
@@ -601,13 +639,13 @@
         import { getFirestore, collection, addDoc, getDocs, doc, query, where, onSnapshot, serverTimestamp, deleteDoc, updateDoc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
         const firebaseConfig = {
- apiKey: "AIzaSyA2k5hvtCzAxClwmgxuiyiIzSa4UugZLas",
-  authDomain: "finance-control-35102.firebaseapp.com",
-  projectId: "finance-control-35102",
-  storageBucket: "finance-control-35102.firebasestorage.app",
-  messagingSenderId: "863606044392",
-  appId: "1:863606044392:web:9da74f5606f988b53b3b5d",
-  measurementId: "G-582WDX4234"
+            apiKey: "AIzaSyA2k5hvtCzAxClwmgxuiyiIzSa4UugZLas",
+            authDomain: "finance-control-35102.firebaseapp.com",
+            projectId: "finance-control-35102",
+            storageBucket: "finance-control-35102.firebasestorage.app",
+            messagingSenderId: "863606044392",
+            appId: "1:863606044392:web:9da74f5606f988b53b3b5d",
+            measurementId: "G-582WDX4234"
         };
 
         // Inicializar Firebase
@@ -632,6 +670,9 @@
         let unsubscribeBudgets;
         let unsubscribeAssets;
         let unsubscribeSettings;
+
+        // Almacenará todas las transacciones del usuario para filtrado en cliente
+        let allUserTransactions = [];
 
         const showAuthScreen = () => {
             authScreen.classList.remove('hidden');
@@ -668,7 +709,8 @@
             getTabs().forEach(tab => tab.classList.add('hidden'));
             document.getElementById(tabId).classList.remove('hidden');
             getTabButtons().forEach(button => button.classList.remove('active'));
-            document.querySelector(`.tab-button[data-tab="${tabId}"]`).classList.add('active');
+            // Activar botones en ambas navbars (móvil y escritorio)
+            document.querySelectorAll(`.tab-button[data-tab="${tabId}"]`).forEach(btn => btn.classList.add('active'));
         };
 
         getTabButtons().forEach(button => {
@@ -921,7 +963,7 @@
         };
 
         const editTransaction = (docId) => {
-            const transaction = transactionsData.find(t => t.id === docId);
+            const transaction = allUserTransactions.find(t => t.id === docId);
             if (!transaction) return;
 
             document.getElementById('transactionMain').classList.add('hidden');
@@ -944,17 +986,15 @@
             document.getElementById('accountingBook').value = transaction.accountingBook;
         };
 
-        let transactionsData = [];
-
-        const renderTransactions = (transactions) => {
-            transactionsData = transactions.map(d => ({id: d.id, ...d.data()}));
+        // Renderiza la tabla de transacciones con los datos (ya filtrados y ordenados)
+        const renderTransactionsTable = (transactions) => {
             const tbody = document.getElementById('transactionsTableBody');
             tbody.innerHTML = '';
             if (transactions.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">No hay transacciones registradas.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">No hay transacciones que coincidan con los filtros.</td></tr>';
                 return;
             }
-            transactionsData.forEach(data => {
+            transactions.forEach(data => {
                 const row = document.createElement('tr');
                 row.className = data.type === 'expense' ? 'bg-red-50' : 'bg-green-50';
                 row.innerHTML = `
@@ -988,6 +1028,50 @@
             });
         };
 
+        // Aplica filtros y ordenación a la lista global y luego renderiza
+        const applyFiltersAndRender = () => {
+            const startDate = document.getElementById('filterStartDate').value;
+            const endDate = document.getElementById('filterEndDate').value;
+            const category = document.getElementById('filterCategory').value;
+            const account = document.getElementById('filterAccount').value;
+            const sortOrder = document.getElementById('filterSort').value;
+
+            let filteredTransactions = [...allUserTransactions];
+
+            if (startDate) {
+                const start = new Date(startDate);
+                start.setHours(0, 0, 0, 0);
+                filteredTransactions = filteredTransactions.filter(t => t.date.toDate() >= start);
+            }
+            if (endDate) {
+                const end = new Date(endDate);
+                end.setHours(23, 59, 59, 999);
+                filteredTransactions = filteredTransactions.filter(t => t.date.toDate() <= end);
+            }
+            if (category) {
+                filteredTransactions = filteredTransactions.filter(t => t.category === category);
+            }
+            if (account) {
+                filteredTransactions = filteredTransactions.filter(t => t.account === account);
+            }
+
+            filteredTransactions.sort((a, b) => {
+                const dateA = a.date.seconds;
+                const dateB = b.date.seconds;
+                return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
+            });
+
+            renderTransactionsTable(filteredTransactions);
+        };
+        
+        document.getElementById('applyFiltersBtn').addEventListener('click', applyFiltersAndRender);
+        
+        document.getElementById('clearFiltersBtn').addEventListener('click', () => {
+            document.getElementById('filterForm').reset();
+            renderTransactionsTable(allUserTransactions); // Muestra todas las transacciones de nuevo
+        });
+
+
         const renderBudgets = (budgets, transactions) => {
             const tbody = document.getElementById('budgetsTableBody');
             tbody.innerHTML = '';
@@ -1003,13 +1087,14 @@
                 const totalSpent = transactions
                     .filter(t =>
                         t.data().category === budget.category &&
+                        t.data().type === 'expense' &&
                         t.data().date.toDate().getMonth() === currentMonth &&
                         t.data().date.toDate().getFullYear() === currentYear
                     )
                     .reduce((sum, t) => sum + t.data().amount, 0);
 
                 const remaining = budget.amount - totalSpent;
-                const progressColor = remaining < 0 ? 'text-red-600' : 'text-green-600';
+                const progressColor = remaining < 0 ? 'text-red-600' : 'text-red-600';
 
                 const row = document.createElement('tr');
                 row.innerHTML = `
@@ -1080,13 +1165,13 @@
             }
         };
 
-        const populateSelectOptions = (selectId, options, includePlaceholder = true) => {
+        const populateSelectOptions = (selectId, options, includePlaceholder = true, placeholderText = 'Seleccionar...') => {
             const selectElem = document.getElementById(selectId);
             selectElem.innerHTML = '';
             if (includePlaceholder) {
                 const placeholder = document.createElement('option');
                 placeholder.value = '';
-                placeholder.textContent = 'Seleccionar...';
+                placeholder.textContent = placeholderText;
                 selectElem.appendChild(placeholder);
             }
             options.forEach(optionText => {
@@ -1130,9 +1215,10 @@
             });
 
             // Populate selects in other tabs
-            populateSelectOptions('category', settings.categories.filter(c => c !== 'Transferencia' && c !== 'Saldo Inicial'));
-            populateSelectOptions('recCategory', settings.categories.filter(c => c !== 'Transferencia' && c !== 'Saldo Inicial'));
-            populateSelectOptions('budgetCategory', settings.categories.filter(c => c !== 'Transferencia' && c !== 'Saldo Inicial'));
+            const categoriesForExpenses = settings.categories.filter(c => c !== 'Transferencia' && c !== 'Saldo Inicial');
+            populateSelectOptions('category', categoriesForExpenses);
+            populateSelectOptions('recCategory', categoriesForExpenses);
+            populateSelectOptions('budgetCategory', categoriesForExpenses);
             populateSelectOptions('account', settings.accounts);
             populateSelectOptions('recAccount', settings.accounts);
             populateSelectOptions('transferFrom', settings.accounts);
@@ -1140,14 +1226,22 @@
             populateSelectOptions('accountingBook', settings.accountingBooks);
             populateSelectOptions('recAccountingBook', settings.accountingBooks);
             populateSelectOptions('transferAccountingBook', settings.accountingBooks);
+
+            // Populate filter selects
+            populateSelectOptions('filterCategory', settings.categories, true, 'Todas las categorías');
+            populateSelectOptions('filterAccount', settings.accounts, true, 'Todas las cuentas');
         };
 
 
         const setupRealtimeListeners = (uid) => {
             unsubscribeTransactions = onSnapshot(query(collection(db, dbCollections.transactions), where("userId", "==", uid)), (snapshot) => {
-                const transactions = snapshot.docs;
-                renderTransactions(transactions);
-                renderDashboard(transactions);
+                const transactionsFromDB = snapshot.docs;
+                // Almacena todos los datos en la variable global
+                allUserTransactions = transactionsFromDB.map(doc => ({ id: doc.id, ...doc.data() }));
+                // Llama a la función de filtrado, que por defecto (sin filtros) mostrará todo
+                applyFiltersAndRender();
+                // Actualiza el dashboard con todos los datos sin filtrar
+                renderDashboard(transactionsFromDB);
             });
             unsubscribeBudgets = onSnapshot(query(collection(db, dbCollections.budgets), where("userId", "==", uid)), (snapshot) => {
                 const budgets = snapshot.docs;
@@ -1191,44 +1285,42 @@
         };
 
         const renderAccountsSummary = (transactions) => {
-    const summaryDiv = document.getElementById('accountsSummary');
-    const accounts = {};
+            const summaryDiv = document.getElementById('accountsSummary');
+            const accounts = {};
 
-    transactions.forEach(doc => {
-        const data = doc.data();
-        if (!accounts[data.account]) accounts[data.account] = 0;
+            transactions.forEach(doc => {
+                const data = doc.data();
+                if (!accounts[data.account]) accounts[data.account] = 0;
 
-        if (data.type === 'income') {
-            accounts[data.account] += data.amount;
-        } else if (data.type === 'expense') {
-            accounts[data.account] -= data.amount;
-        }
-    });
+                if (data.type === 'income') {
+                    accounts[data.account] += data.amount;
+                } else if (data.type === 'expense') {
+                    accounts[data.account] -= data.amount;
+                }
+            });
 
-    let html = '';
-    let totalBalance = 0;
+            let html = '';
+            let totalBalance = 0;
 
-    for (const account in accounts) {
-        totalBalance += accounts[account];
-        html += `
-            <div class="flex justify-between items-center">
-                <span class="text-sm font-medium text-gray-700">${account}</span>
-                <span class="text-sm font-bold ${accounts[account] >= 0 ? 'text-green-600' : 'text-red-600'}">${accounts[account].toFixed(2)} €</span>
-            </div>
-        `;
-    }
+            for (const account in accounts) {
+                totalBalance += accounts[account];
+                html += `
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm font-medium text-gray-700">${account}</span>
+                        <span class="text-sm font-bold ${accounts[account] >= 0 ? 'text-green-600' : 'text-red-600'}">${accounts[account].toFixed(2)} €</span>
+                    </div>
+                `;
+            }
 
-    // Se añade el HTML para el saldo total aquí, después de calcularlo
-    html += `
-        <div class="flex items-center justify-between mt-4 border-t pt-4">
-            <span class="text-base font-semibold text-gray-800">Saldo Total:</span>
-            <span id="totalBalance" class="text-xl font-bold text-indigo-600">${totalBalance.toFixed(2)} €</span>
-        </div>
-    `;
-
-    // Se actualiza el div una única vez con todo el contenido
-    summaryDiv.innerHTML = html;
-};
+            html += `
+                <div class="flex items-center justify-between mt-4 border-t pt-4">
+                    <span class="text-base font-semibold text-gray-800">Saldo Total:</span>
+                    <span id="totalBalance" class="text-xl font-bold text-indigo-600">${totalBalance.toFixed(2)} €</span>
+                </div>
+            `;
+            
+            summaryDiv.innerHTML = html;
+        };
 
         const renderIncomeExpenseChart = (transactions) => {
             const currentMonthTransactions = transactions.filter(t => t.data().date.toDate().getMonth() === new Date().getMonth());
@@ -1260,7 +1352,7 @@
         };
 
         const renderExpenseCategoryChart = (transactions) => {
-            const expenseTransactions = transactions.filter(t => t.data().type === 'expense' && t.data().category !== 'Transferencia' && t.data().category !== 'Saldo Inicial');
+            const expenseTransactions = transactions.filter(t => t.data().type === 'expense' && t.data().category !== 'Transferencia');
             const categories = expenseTransactions.reduce((acc, t) => {
                 const category = t.data().category;
                 acc[category] = (acc[category] || 0) + t.data().amount;
@@ -1296,41 +1388,53 @@
 
         const renderCashFlowChart = (transactions) => {
             const monthlyData = {};
-            transactions.forEach(t => {
+            const currentYear = new Date().getFullYear();
+
+            // Filtrar transacciones del año actual
+            const currentYearTransactions = transactions.filter(t => t.data().date.toDate().getFullYear() === currentYear);
+
+            currentYearTransactions.forEach(t => {
                 const date = t.data().date.toDate();
-                const monthYear = `${date.getFullYear()}-${date.getMonth() + 1}`;
-                if (!monthlyData[monthYear]) {
-                    monthlyData[monthYear] = { income: 0, expense: 0 };
+                const month = date.getMonth(); // 0-11
+                if (!monthlyData[month]) {
+                    monthlyData[month] = { income: 0, expense: 0 };
                 }
                 if (t.data().type === 'income') {
-                    monthlyData[monthYear].income += t.data().amount;
+                    monthlyData[month].income += t.data().amount;
                 } else {
-                    monthlyData[monthYear].expense += t.data().amount;
+                    monthlyData[month].expense += t.data().amount;
                 }
             });
+            
+            const monthLabels = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+            const incomeData = [];
+            const expenseData = [];
 
-            const labels = Object.keys(monthlyData).sort();
-            const incomeData = labels.map(label => monthlyData[label].income);
-            const expenseData = labels.map(label => monthlyData[label].expense);
+            for (let i = 0; i < 12; i++) {
+                incomeData.push(monthlyData[i] ? monthlyData[i].income : 0);
+                expenseData.push(monthlyData[i] ? monthlyData[i].expense : 0);
+            }
 
             const data = {
-                labels: labels,
+                labels: monthLabels,
                 datasets: [
                     {
                         label: 'Ingresos',
                         data: incomeData,
-                        backgroundColor: '#4f46e5',
+                        backgroundColor: 'rgba(79, 70, 229, 0.5)',
                         borderColor: '#4f46e5',
                         borderWidth: 2,
-                        fill: false
+                        fill: true,
+                        tension: 0.4
                     },
                     {
                         label: 'Gastos',
                         data: expenseData,
-                        backgroundColor: '#ef4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.5)',
                         borderColor: '#ef4444',
                         borderWidth: 2,
-                        fill: false
+                        fill: true,
+                        tension: 0.4
                     }
                 ]
             };
@@ -1340,22 +1444,11 @@
                 data: data,
                 options: {
                     responsive: true,
-                    interaction: {
-                        mode: 'index',
-                        intersect: false,
-                    },
-                    plugins: {
-                        title: { display: false },
-                    },
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: { title: { display: false } },
                     scales: {
-                        x: {
-                            display: true,
-                            title: { display: true, text: 'Mes' }
-                        },
-                        y: {
-                            display: true,
-                            title: { display: true, text: 'Cantidad (€)' }
-                        }
+                        x: { display: true, title: { display: false } },
+                        y: { display: true, title: { display: true, text: 'Cantidad (€)' } }
                     }
                 }
             };
@@ -1363,7 +1456,6 @@
             if (cashFlowChart) cashFlowChart.destroy();
             cashFlowChart = new Chart(document.getElementById('cashFlowChart'), config);
         };
-
 
         // Event listeners
         document.getElementById('registerTransactionBtn').addEventListener('click', () => {
@@ -1377,13 +1469,17 @@
             document.getElementById('transactionContent').classList.add('hidden');
             document.getElementById('transactionHistory').classList.remove('hidden');
         });
-
+        document.getElementById('backFromTransactionBtn').addEventListener('click', () => {
+            document.getElementById('transactionMenu').classList.add('hidden');
+            document.getElementById('transactionMain').classList.remove('hidden');
+        });
         document.getElementById('addIncomeBtn').addEventListener('click', () => {
             document.getElementById('transactionMenu').classList.add('hidden');
             document.getElementById('transactionContent').classList.remove('hidden');
             document.getElementById('incomeExpenseForm').classList.remove('hidden');
             document.getElementById('formTitle').textContent = 'Registrar Ingreso';
             document.getElementById('type').value = 'income';
+            resetTransactionForm();
         });
         document.getElementById('addExpenseBtn').addEventListener('click', () => {
             document.getElementById('transactionMenu').classList.add('hidden');
@@ -1391,16 +1487,21 @@
             document.getElementById('incomeExpenseForm').classList.remove('hidden');
             document.getElementById('formTitle').textContent = 'Registrar Gasto';
             document.getElementById('type').value = 'expense';
+            resetTransactionForm();
         });
         document.getElementById('addTransferBtn').addEventListener('click', () => {
             document.getElementById('transactionMenu').classList.add('hidden');
             document.getElementById('transactionContent').classList.remove('hidden');
             document.getElementById('transferForm').classList.remove('hidden');
+            document.getElementById('incomeExpenseForm').classList.add('hidden');
+            document.getElementById('recurringForm').classList.add('hidden');
         });
         document.getElementById('addRecurringBtn').addEventListener('click', () => {
             document.getElementById('transactionMenu').classList.add('hidden');
             document.getElementById('transactionContent').classList.remove('hidden');
             document.getElementById('recurringForm').classList.remove('hidden');
+            document.getElementById('incomeExpenseForm').classList.add('hidden');
+            document.getElementById('transferForm').classList.add('hidden');
         });
 
         document.getElementById('backFromFormBtn').addEventListener('click', () => {
@@ -1447,141 +1548,35 @@
         document.getElementById('brokerBuyForm').addEventListener('submit', saveAssetBuy);
         document.getElementById('brokerSellForm').addEventListener('submit', saveAssetSell);
 
-        // Funciones para manejar la sección de Configuración
-const setupSettings = () => {
-    // Cargar y mostrar las cuentas
-    const accounts = getFromLocalStorage('accounts') || [];
-    const accountList = document.getElementById('accountList');
-    accountList.innerHTML = '';
-    accounts.forEach(account => {
-        const accountSpan = document.createElement('span');
-        accountSpan.textContent = account.name;
-        accountSpan.classList.add('bg-gray-200', 'text-gray-800', 'text-sm', 'font-medium', 'px-2.5', 'py-0.5', 'rounded-full');
-        accountList.appendChild(accountSpan);
-    });
+        document.getElementById('categoryForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const newCategory = document.getElementById('newCategory').value.trim();
+            if (newCategory) {
+                addSetting('categories', newCategory);
+                document.getElementById('newCategory').value = '';
+            }
+        });
 
-    // Cargar y mostrar las categorías y contabilidades (si existen)
-    const categories = getFromLocalStorage('categories') || [];
-    const categoryList = document.getElementById('categoryList');
-    categoryList.innerHTML = '';
-    categories.forEach(category => {
-        const categorySpan = document.createElement('span');
-        categorySpan.textContent = category;
-        categorySpan.classList.add('bg-gray-200', 'text-gray-800', 'text-sm', 'font-medium', 'px-2.5', 'py-0.5', 'rounded-full');
-        categoryList.appendChild(categorySpan);
-    });
-    
-    const accountingBooks = getFromLocalStorage('accountingBooks') || [];
-    const accountingList = document.getElementById('accountingList');
-    accountingList.innerHTML = '';
-    accountingBooks.forEach(book => {
-        const bookSpan = document.createElement('span');
-        bookSpan.textContent = book;
-        bookSpan.classList.add('bg-gray-200', 'text-gray-800', 'text-sm', 'font-medium', 'px-2.5', 'py-0.5', 'rounded-full');
-        accountingList.appendChild(bookSpan);
-    });
-};
+        document.getElementById('accountForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const newAccountName = document.getElementById('newAccount').value.trim();
+            const initialBalance = document.getElementById('initialBalance').value;
+            if (newAccountName) {
+                addSetting('accounts', newAccountName, initialBalance);
+                document.getElementById('newAccount').value = '';
+                document.getElementById('initialBalance').value = '0';
+            }
+        });
 
-// Eventos de los formularios en la sección de Configuración
-document.getElementById('categoryForm').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const newCategory = document.getElementById('newCategory').value.trim();
-    if (newCategory) {
-        addSetting('categories', newCategory);
-        document.getElementById('newCategory').value = '';
-    }
-});
+        document.getElementById('accountingForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const newAccountingBook = document.getElementById('newAccountingBook').value.trim();
+            if (newAccountingBook) {
+                addSetting('accountingBooks', newAccountingBook);
+                document.getElementById('newAccountingBook').value = '';
+            }
+        });
 
-document.getElementById('accountForm').addEventListener('submit', (e) => {
-    e.preventDefault();
-
-    // Obtener los valores del formulario
-    const newAccountName = document.getElementById('newAccount').value.trim();
-    const initialBalance = document.getElementById('initialBalance').value;
-
-    // Solo si se ha introducido un nombre de cuenta, continuar
-    if (newAccountName) {
-        // Usamos la función genérica 'addSetting' que ya existe y funciona
-        addSetting('accounts', newAccountName, initialBalance);
-        
-        // Limpiar los campos del formulario
-        document.getElementById('newAccount').value = '';
-        document.getElementById('initialBalance').value = '0';
-    }
-});
-
-document.getElementById('accountingForm').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const newAccountingBook = document.getElementById('newAccountingBook').value.trim();
-    if (newAccountingBook) {
-        addSetting('accountingBooks', newAccountingBook);
-        document.getElementById('newAccountingBook').value = '';
-    }
-});
-
-// Funciones para manejar la visibilidad de la sección de transacciones
-const showTransactionMain = () => {
-    document.getElementById('transactionMain').classList.remove('hidden');
-    document.getElementById('transactionMenu').classList.add('hidden');
-    document.getElementById('transactionContent').classList.add('hidden');
-};
-
-const showTransactionMenu = () => {
-    document.getElementById('transactionMain').classList.add('hidden');
-    document.getElementById('transactionMenu').classList.remove('hidden');
-    document.getElementById('transactionContent').classList.add('hidden');
-};
-
-const showTransactionForm = (type) => {
-    document.getElementById('transactionMain').classList.add('hidden');
-    document.getElementById('transactionMenu').classList.add('hidden');
-    document.getElementById('transactionContent').classList.remove('hidden');
-    document.getElementById('incomeExpenseForm').classList.remove('hidden');
-    document.getElementById('transferForm').classList.add('hidden');
-    document.getElementById('recurringForm').classList.add('hidden');
-    if (type === 'income') {
-        document.getElementById('formTitle').textContent = 'Registrar Ingreso';
-        document.getElementById('type').value = 'income';
-    } else {
-        document.getElementById('formTitle').textContent = 'Registrar Gasto';
-        document.getElementById('type').value = 'expense';
-    }
-};
-
-const showTransferForm = () => {
-    document.getElementById('transactionMain').classList.add('hidden');
-    document.getElementById('transactionMenu').classList.add('hidden');
-    document.getElementById('transactionContent').classList.remove('hidden');
-    document.getElementById('incomeExpenseForm').classList.add('hidden');
-    document.getElementById('transferForm').classList.remove('hidden');
-    document.getElementById('recurringForm').classList.add('hidden');
-};
-
-const showRecurringForm = () => {
-    document.getElementById('transactionMain').classList.add('hidden');
-    document.getElementById('transactionMenu').classList.add('hidden');
-    document.getElementById('transactionContent').classList.remove('hidden');
-    document.getElementById('incomeExpenseForm').classList.add('hidden');
-    document.getElementById('transferForm').classList.add('hidden');
-    document.getElementById('recurringForm').classList.remove('hidden');
-};
-
-// Asignar los eventos de click a los botones
-document.getElementById('registerTransactionBtn').addEventListener('click', showTransactionMenu);
-document.getElementById('backFromTransactionBtn').addEventListener('click', showTransactionMain);
-document.getElementById('backFromFormBtn').addEventListener('click', showTransactionMenu);
-
-// Eventos para los botones de tipo de transacción
-document.getElementById('addIncomeBtn').addEventListener('click', () => showTransactionForm('income'));
-document.getElementById('addExpenseBtn').addEventListener('click', () => showTransactionForm('expense'));
-document.getElementById('addTransferBtn').addEventListener('click', showTransferForm);
-document.getElementById('addRecurringBtn').addEventListener('click', showRecurringForm);
-
-
-        // Inicialización
-        document.getElementById('date').valueAsDate = new Date();
-        document.getElementById('transferDate').valueAsDate = new Date();
-        document.getElementById('recStartDate').valueAsDate = new Date();
         const initializeFinancesApp = () => {
              onAuthStateChanged(auth, (user) => {
                 if (user) {
@@ -1596,35 +1591,29 @@ document.getElementById('addRecurringBtn').addEventListener('click', showRecurri
             });
         };
         initializeFinancesApp();
-// Función para aplicar o quitar el filtro de pixelado a los saldos
-const toggleBalancesVisibility = (shouldPixelate) => {
-    const accountBalanceElements = document.querySelectorAll('#accountsSummary');
-    accountBalanceElements.forEach(element => {
-        if (shouldPixelate) {
-            element.classList.add('pixelate-text');
-        } else {
-            element.classList.remove('pixelate-text');
+
+        const toggleBalancesVisibility = (shouldPixelate) => {
+            const balanceElements = document.querySelectorAll('#accountsSummary span:last-child');
+            balanceElements.forEach(element => {
+                if (shouldPixelate) {
+                    element.classList.add('pixelate-text');
+                } else {
+                    element.classList.remove('pixelate-text');
+                }
+            });
+        };
+
+        const toggleBalancesSwitch = document.getElementById('toggleBalances');
+        if (toggleBalancesSwitch) {
+            const isPixelated = localStorage.getItem('pixelateBalances') === 'true';
+            toggleBalancesSwitch.checked = isPixelated;
+            toggleBalancesVisibility(isPixelated);
+
+            toggleBalancesSwitch.addEventListener('change', () => {
+                localStorage.setItem('pixelateBalances', toggleBalancesSwitch.checked);
+                toggleBalancesVisibility(toggleBalancesSwitch.checked);
+            });
         }
-    });
-};
-
-// Evento para el interruptor de visibilidad de saldos
-const toggleBalances = document.getElementById('toggleBalances');
-if (toggleBalances) {
-    // Cargar el estado guardado al inicio
-    const isPixelated = localStorage.getItem('pixelateBalances') === 'true';
-    toggleBalances.checked = isPixelated;
-
-    // Aplicar el estado inicial
-    toggleBalancesVisibility(isPixelated);
-
-    // Guardar el estado al cambiar
-    toggleBalances.addEventListener('change', () => {
-        localStorage.setItem('pixelateBalances', toggleBalances.checked);
-        toggleBalancesVisibility(toggleBalances.checked);
-    });
-}
     </script>
 </body>
-
 </html>
