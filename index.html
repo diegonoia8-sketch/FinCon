@@ -98,7 +98,7 @@
                 </div>
 
                 <div class="lg:col-span-3 bg-white p-6 rounded-lg shadow-sm">
-                    <h2 class="text-lg font-semibold text-gray-800 mb-4">Flujo de Caja Anual</h2>
+                    <h2 class="text-lg font-semibold text-gray-800 mb-4">Ahorro Mensual (Últimos 6 Meses)</h2>
                     <canvas id="cashFlowChart"></canvas>
                 </div>
             </div>
@@ -1068,7 +1068,7 @@
         
         document.getElementById('clearFiltersBtn').addEventListener('click', () => {
             document.getElementById('filterForm').reset();
-            renderTransactionsTable(allUserTransactions); // Muestra todas las transacciones de nuevo
+            applyFiltersAndRender();
         });
 
 
@@ -1094,7 +1094,7 @@
                     .reduce((sum, t) => sum + t.data().amount, 0);
 
                 const remaining = budget.amount - totalSpent;
-                const progressColor = remaining < 0 ? 'text-red-600' : 'text-red-600';
+                const progressColor = remaining < 0 ? 'text-red-600' : 'text-green-600';
 
                 const row = document.createElement('tr');
                 row.innerHTML = `
@@ -1284,6 +1284,17 @@
             renderCashFlowChart(transactions);
         };
 
+        const toggleBalancesVisibility = (shouldPixelate) => {
+            const balanceElements = document.querySelectorAll('.balance-value');
+            balanceElements.forEach(element => {
+                if (shouldPixelate) {
+                    element.classList.add('pixelate-text');
+                } else {
+                    element.classList.remove('pixelate-text');
+                }
+            });
+        };
+
         const renderAccountsSummary = (transactions) => {
             const summaryDiv = document.getElementById('accountsSummary');
             const accounts = {};
@@ -1307,7 +1318,7 @@
                 html += `
                     <div class="flex justify-between items-center">
                         <span class="text-sm font-medium text-gray-700">${account}</span>
-                        <span class="text-sm font-bold ${accounts[account] >= 0 ? 'text-green-600' : 'text-red-600'}">${accounts[account].toFixed(2)} €</span>
+                        <span class="balance-value text-sm font-bold ${accounts[account] >= 0 ? 'text-green-600' : 'text-red-600'}">${accounts[account].toFixed(2)} €</span>
                     </div>
                 `;
             }
@@ -1315,17 +1326,26 @@
             html += `
                 <div class="flex items-center justify-between mt-4 border-t pt-4">
                     <span class="text-base font-semibold text-gray-800">Saldo Total:</span>
-                    <span id="totalBalance" class="text-xl font-bold text-indigo-600">${totalBalance.toFixed(2)} €</span>
+                    <span id="totalBalance" class="balance-value text-xl font-bold text-indigo-600">${totalBalance.toFixed(2)} €</span>
                 </div>
             `;
             
             summaryDiv.innerHTML = html;
+
+            // **FIX**: Apply pixelation *after* rendering the HTML
+            const isPixelated = document.getElementById('toggleBalances').checked;
+            toggleBalancesVisibility(isPixelated);
         };
 
         const renderIncomeExpenseChart = (transactions) => {
-            const currentMonthTransactions = transactions.filter(t => t.data().date.toDate().getMonth() === new Date().getMonth());
+            const currentMonth = new Date().getMonth();
+            const currentYear = new Date().getFullYear();
+            const currentMonthTransactions = transactions.filter(t => {
+                const date = t.data().date.toDate();
+                return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
+            });
             const income = currentMonthTransactions.filter(t => t.data().type === 'income').reduce((sum, t) => sum + t.data().amount, 0);
-            const expense = currentMonthTransactions.filter(t => t.data().type === 'expense').reduce((sum, t) => sum + t.data().amount, 0);
+            const expense = currentMonthTransactions.filter(t => t.data().type === 'expense' && t.data().category !== 'Transferencia').reduce((sum, t) => sum + t.data().amount, 0);
 
             const data = {
                 labels: ['Ingresos', 'Gastos'],
@@ -1388,67 +1408,77 @@
 
         const renderCashFlowChart = (transactions) => {
             const monthlyData = {};
-            const currentYear = new Date().getFullYear();
+            const monthLabelsShort = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+            const today = new Date();
+            
+            // 1. Initialize data for the last 6 months
+            for (let i = 5; i >= 0; i--) {
+                const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+                const key = `${d.getFullYear()}-${d.getMonth()}`;
+                monthlyData[key] = {
+                    income: 0,
+                    expense: 0,
+                    label: monthLabelsShort[d.getMonth()]
+                };
+            }
+            
+            const sixMonthsAgo = new Date(today.getFullYear(), today.getMonth() - 5, 1);
+            sixMonthsAgo.setHours(0,0,0,0);
 
-            // Filtrar transacciones del año actual
-            const currentYearTransactions = transactions.filter(t => t.data().date.toDate().getFullYear() === currentYear);
+            // 2. Filter transactions for the last 6 months
+            const recentTransactions = transactions.filter(t => t.data().date.toDate() >= sixMonthsAgo);
 
-            currentYearTransactions.forEach(t => {
-                const date = t.data().date.toDate();
-                const month = date.getMonth(); // 0-11
-                if (!monthlyData[month]) {
-                    monthlyData[month] = { income: 0, expense: 0 };
-                }
-                if (t.data().type === 'income') {
-                    monthlyData[month].income += t.data().amount;
-                } else {
-                    monthlyData[month].expense += t.data().amount;
+            // 3. Aggregate data
+            recentTransactions.forEach(tDoc => {
+                const t = tDoc.data();
+                const date = t.date.toDate();
+                const key = `${date.getFullYear()}-${date.getMonth()}`;
+                if (monthlyData[key]) {
+                    if (t.type === 'income' && t.category !== 'Transferencia') {
+                        monthlyData[key].income += t.amount;
+                    } else if (t.type === 'expense' && t.category !== 'Transferencia') {
+                        monthlyData[key].expense += t.amount;
+                    }
                 }
             });
-            
-            const monthLabels = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
-            const incomeData = [];
-            const expenseData = [];
 
-            for (let i = 0; i < 12; i++) {
-                incomeData.push(monthlyData[i] ? monthlyData[i].income : 0);
-                expenseData.push(monthlyData[i] ? monthlyData[i].expense : 0);
-            }
+            const sortedKeys = Object.keys(monthlyData).sort((a, b) => new Date(a.split('-')[0], a.split('-')[1]) - new Date(b.split('-')[0], b.split('-')[1]));
+            
+            const labels = sortedKeys.map(key => monthlyData[key].label);
+            const savingsData = sortedKeys.map(key => monthlyData[key].income - monthlyData[key].expense);
+            const backgroundColors = savingsData.map(saving => saving >= 0 ? 'rgba(79, 70, 229, 0.7)' : 'rgba(239, 68, 68, 0.7)');
 
             const data = {
-                labels: monthLabels,
-                datasets: [
-                    {
-                        label: 'Ingresos',
-                        data: incomeData,
-                        backgroundColor: 'rgba(79, 70, 229, 0.5)',
-                        borderColor: '#4f46e5',
-                        borderWidth: 2,
-                        fill: true,
-                        tension: 0.4
-                    },
-                    {
-                        label: 'Gastos',
-                        data: expenseData,
-                        backgroundColor: 'rgba(239, 68, 68, 0.5)',
-                        borderColor: '#ef4444',
-                        borderWidth: 2,
-                        fill: true,
-                        tension: 0.4
-                    }
-                ]
+                labels: labels,
+                datasets: [{
+                    label: 'Ahorro Mensual',
+                    data: savingsData,
+                    backgroundColor: backgroundColors,
+                    borderColor: backgroundColors.map(color => color.replace('0.7', '1')),
+                    borderWidth: 1
+                }]
             };
 
             const config = {
-                type: 'line',
+                type: 'bar',
                 data: data,
                 options: {
                     responsive: true,
-                    interaction: { mode: 'index', intersect: false },
-                    plugins: { title: { display: false } },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => `Ahorro: ${context.raw.toFixed(2)} €`
+                            }
+                        }
+                    },
                     scales: {
-                        x: { display: true, title: { display: false } },
-                        y: { display: true, title: { display: true, text: 'Cantidad (€)' } }
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: (value) => `${value} €`
+                            }
+                        }
                     }
                 }
             };
@@ -1456,6 +1486,7 @@
             if (cashFlowChart) cashFlowChart.destroy();
             cashFlowChart = new Chart(document.getElementById('cashFlowChart'), config);
         };
+
 
         // Event listeners
         document.getElementById('registerTransactionBtn').addEventListener('click', () => {
@@ -1590,30 +1621,23 @@
                 }
             });
         };
-        initializeFinancesApp();
-
-        const toggleBalancesVisibility = (shouldPixelate) => {
-            const balanceElements = document.querySelectorAll('#accountsSummary span:last-child');
-            balanceElements.forEach(element => {
-                if (shouldPixelate) {
-                    element.classList.add('pixelate-text');
-                } else {
-                    element.classList.remove('pixelate-text');
-                }
-            });
-        };
-
+        
         const toggleBalancesSwitch = document.getElementById('toggleBalances');
         if (toggleBalancesSwitch) {
+            // Cargar el estado guardado al inicio
             const isPixelated = localStorage.getItem('pixelateBalances') === 'true';
             toggleBalancesSwitch.checked = isPixelated;
-            toggleBalancesVisibility(isPixelated);
 
+            // Guardar el estado al cambiar
             toggleBalancesSwitch.addEventListener('change', () => {
-                localStorage.setItem('pixelateBalances', toggleBalancesSwitch.checked);
-                toggleBalancesVisibility(toggleBalancesSwitch.checked);
+                const isChecked = toggleBalancesSwitch.checked;
+                localStorage.setItem('pixelateBalances', isChecked);
+                toggleBalancesVisibility(isChecked);
             });
         }
+        
+        initializeFinancesApp();
+
     </script>
 </body>
 </html>
