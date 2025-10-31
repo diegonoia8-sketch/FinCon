@@ -386,7 +386,7 @@
                 </button>
                 <button id="settingsBtn" class="tab-button flex flex-col items-center justify-center p-2 text-gray-500 hover:text-indigo-600" data-tab="settings">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826 3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
                     <span class="text-xs mt-1">Configuración</span>
@@ -410,7 +410,7 @@
                 </button>
                 <button id="settingsBtnDesktop" class="tab-button flex items-center p-2 text-gray-500 hover:text-indigo-600" data-tab="settings">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826 3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
                     <span>Configuración</span>
@@ -712,12 +712,9 @@
             });
         };
         
-        // *** NUEVA VARIABLE PARA EL GRÁFICO DEL HISTORIAL ***
         let historyChart;
 
-        // *** NUEVA FUNCIÓN PARA RENDERIZAR EL GRÁFICO DEL HISTORIAL ***
         const renderHistoryChart = (transactions) => {
-            // Destruir gráfico anterior si existe
             if (historyChart) {
                 historyChart.destroy();
                 historyChart = null;
@@ -725,25 +722,22 @@
 
             const type = document.getElementById('historyChartType').value;
             
-            // Filtrar de nuevo por tipo y excluir categorías especiales
             const filtered = transactions.filter(t => t.type === type && t.category !== 'Transferencia' && t.category !== 'Saldo Inicial');
 
             const ctx = document.getElementById('historyChart').getContext('2d');
 
-            // Si no hay datos, mostrar mensaje
             if (filtered.length === 0) {
                  ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
                  ctx.save();
                  ctx.textAlign = 'center';
                  ctx.textBaseline = 'middle';
-                 ctx.fillStyle = '#9CA3AF'; // text-gray-400
+                 ctx.fillStyle = '#9CA3AF';
                  ctx.font = '16px "Inter", sans-serif';
                  ctx.fillText('No hay datos para esta selección', ctx.canvas.width / 2, ctx.canvas.height / 2);
                  ctx.restore();
                  return;
             }
 
-            // Agregar datos por categoría
             const categories = filtered.reduce((acc, t) => {
                 acc[t.category] = (acc[t.category] || 0) + t.amount;
                 return acc;
@@ -776,8 +770,6 @@
             historyChart = new Chart(ctx, config);
         };
 
-
-        // *** FUNCIÓN MODIFICADA: applyFiltersAndRender AHORA TAMBIÉN LLAMA AL NUEVO GRÁFICO ***
         const applyFiltersAndRender = () => {
             const startDate = document.getElementById('filterStartDate').value;
             const endDate = document.getElementById('filterEndDate').value;
@@ -811,7 +803,6 @@
             });
             
             renderTransactionsTable(filteredTransactions);
-            // *** NUEVA LLAMADA A LA FUNCIÓN DEL GRÁFICO ***
             renderHistoryChart(filteredTransactions);
         };
         
@@ -822,18 +813,15 @@
             applyFiltersAndRender();
         });
 
-        // *** NUEVO EVENT LISTENER PARA EL SELECTOR DE TIPO DEL GRÁFICO DEL HISTORIAL ***
         document.getElementById('historyChartType').addEventListener('change', applyFiltersAndRender);
 
         const exportToCSV = () => {
-            // 1. Obtener valores de los filtros
             const startDate = document.getElementById('filterStartDate').value;
             const endDate = document.getElementById('filterEndDate').value;
             const category = document.getElementById('filterCategory').value;
             const account = document.getElementById('filterAccount').value;
             const sortOrder = document.getElementById('filterSort').value;
 
-            // 2. Filtrar transacciones
             let filteredTransactions = [...allUserTransactions];
             if (startDate) {
                 const start = new Date(startDate);
@@ -852,14 +840,12 @@
                 filteredTransactions = filteredTransactions.filter(t => t.account === account);
             }
 
-            // 3. Ordenar transacciones
             filteredTransactions.sort((a, b) => {
                 const dateA = a.date.seconds;
                 const dateB = b.date.seconds;
                 return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
             });
 
-            // 4. Construir el contenido CSV
             const headers = ['Fecha', 'Tipo', 'Descripción', 'Cantidad (€)', 'Categoría', 'Cuenta', 'Contabilidad'];
             let csvContent = "data:text/csv;charset=utf-8," + headers.join(',') + '\n';
 
@@ -876,7 +862,6 @@
                 csvContent += row + '\n';
             });
 
-            // 5. Crear y disparar la descarga
             const encodedUri = encodeURI(csvContent);
             const link = document.createElement('a');
             link.setAttribute('href', encodedUri);
@@ -1045,6 +1030,7 @@
             toggleBalancesVisibility(isPixelated);
         };
 
+        // *** FUNCIÓN MODIFICADA ***
         const renderIncomeExpenseChart = (transactions) => {
             const currentMonth = new Date().getMonth();
             const currentYear = new Date().getFullYear();
@@ -1054,10 +1040,10 @@
             });
             
             const income = currentMonthTransactions
-                .filter(t => t.data().type === 'income' && t.data().category !== 'Transferencia' && t.data().category !== 'Saldo Inicial')
+                .filter(t => t.data().type === 'income' && t.data().category !== 'Transferencia' && t.data().category !== 'Saldo Inicial' && t.data().category !== 'Inversiones') // <-- CAMBIO AQUÍ
                 .reduce((sum, t) => sum + t.data().amount, 0);
             const expense = currentMonthTransactions
-                .filter(t => t.data().type === 'expense' && t.data().category !== 'Transferencia')
+                .filter(t => t.data().type === 'expense' && t.data().category !== 'Transferencia' && t.data().category !== 'Inversiones') // <-- CAMBIO AQUÍ
                 .reduce((sum, t) => sum + t.data().amount, 0);
                 
             const data = {
@@ -1135,6 +1121,7 @@
             categoryAnalysisChart = new Chart(document.getElementById('categoryAnalysisChart'), config);
         };
 
+        // *** FUNCIÓN MODIFICADA ***
         const renderCashFlowChart = (transactions) => {
             const monthlyData = {};
             const monthLabelsShort = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
@@ -1160,9 +1147,9 @@
                 const date = t.date.toDate();
                 const key = `${date.getFullYear()}-${date.getMonth()}`;
                 if (monthlyData[key]) {
-                    if (t.type === 'income' && t.category !== 'Transferencia' && t.category !== 'Saldo Inicial') {
+                    if (t.type === 'income' && t.category !== 'Transferencia' && t.category !== 'Saldo Inicial' && t.category !== 'Inversiones') { // <-- CAMBIO AQUÍ
                         monthlyData[key].income += t.amount;
-                    } else if (t.type === 'expense' && t.category !== 'Transferencia') {
+                    } else if (t.type === 'expense' && t.category !== 'Transferencia' && t.category !== 'Inversiones') { // <-- CAMBIO AQUÍ
                         monthlyData[key].expense += t.amount;
                     }
                 }
@@ -1221,13 +1208,11 @@
             document.getElementById('transactionMenu').classList.remove('hidden');
         });
         
-        // *** MODIFICADO: Llama a applyFiltersAndRender para poblar el gráfico al entrar ***
         document.getElementById('viewHistoryBtn').addEventListener('click', () => {
             document.getElementById('transactionMain').classList.add('hidden');
             document.getElementById('transactionMenu').classList.add('hidden');
             document.getElementById('transactionContent').classList.add('hidden');
             document.getElementById('transactionHistory').classList.remove('hidden');
-            // Llama a la función para poblar la tabla Y el gráfico al cargar la vista
             applyFiltersAndRender();
         });
         
@@ -1236,33 +1221,30 @@
             document.getElementById('transactionMain').classList.remove('hidden');
         });
         
-        // *** SOLUCIÓN AL BUG: Llamar a hideAllTransactionForms() ***
         document.getElementById('addIncomeBtn').addEventListener('click', () => {
             document.getElementById('transactionMenu').classList.add('hidden');
             document.getElementById('transactionContent').classList.remove('hidden');
-            hideAllTransactionForms(); // <-- BUG SOLUCIONADO
+            hideAllTransactionForms();
             document.getElementById('incomeExpenseForm').classList.remove('hidden');
             document.getElementById('formTitle').textContent = 'Registrar Ingreso';
             document.getElementById('type').value = 'income';
             resetTransactionForm();
         });
         
-        // *** SOLUCIÓN AL BUG: Llamar a hideAllTransactionForms() ***
         document.getElementById('addExpenseBtn').addEventListener('click', () => {
             document.getElementById('transactionMenu').classList.add('hidden');
             document.getElementById('transactionContent').classList.remove('hidden');
-            hideAllTransactionForms(); // <-- BUG SOLUCIONADO
+            hideAllTransactionForms();
             document.getElementById('incomeExpenseForm').classList.remove('hidden');
             document.getElementById('formTitle').textContent = 'Registrar Gasto';
             document.getElementById('type').value = 'expense';
             resetTransactionForm();
         });
         
-        // *** MODIFICADO: Llamar a hideAllTransactionForms() por consistencia ***
         document.getElementById('addTransferBtn').addEventListener('click', () => {
             document.getElementById('transactionMenu').classList.add('hidden');
             document.getElementById('transactionContent').classList.remove('hidden');
-            hideAllTransactionForms(); // <-- BUG SOLUCIONADO
+            hideAllTransactionForms();
             document.getElementById('transferForm').classList.remove('hidden');
         });
         
@@ -1272,12 +1254,10 @@
             resetTransactionForm();
         });
         
-        // *** MODIFICADO: Destruye el gráfico del historial al salir ***
         document.getElementById('backFromHistoryBtn').addEventListener('click', () => {
             document.getElementById('transactionHistory').classList.add('hidden');
             document.getElementById('transactionMain').classList.remove('hidden');
             
-            // Destruir el gráfico para liberar memoria
             if (historyChart) {
                 historyChart.destroy();
                 historyChart = null;
