@@ -72,6 +72,7 @@
         <main class="flex-grow p-4 md:p-6 pb-20 overflow-y-auto">
     
             <div id="dashboard" class="tab-content grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                
                 <div class="bg-white p-6 rounded-lg shadow-sm">
                     <div class="flex items-center justify-between mb-4">
                         <h2 class="text-lg font-semibold text-gray-800">Resumen de Cuentas</h2>
@@ -86,6 +87,23 @@
                     <div id="accountsSummary" class="space-y-4">
                         <p class="text-sm text-gray-500 loading-text">Cargando resumen de cuentas...</p>
                     </div>
+                    
+                    <div id="pastBalanceContainer" class="mt-6 border-t pt-4">
+                        <h3 class="text-md font-semibold text-gray-700 mb-2">Consultar Saldos Anteriores</h3>
+                        <div class="flex flex-col sm:flex-row gap-2 items-end">
+                            <div class="flex-grow w-full">
+                                <label for="pastBalanceDate" class="block text-sm font-medium text-gray-700">Fecha</label>
+                                <input type="date" id="pastBalanceDate" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2">
+                            </div>
+                            <button id="calculatePastBalanceBtn" class="w-full sm:w-auto bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-indigo-700 transition duration-300">
+                                Consultar
+                            </button>
+                            <button id="resetBalanceBtn" class="hidden w-full sm:w-auto bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-gray-700 transition duration-300">
+                                Ver Saldos Actuales
+                            </button>
+                        </div>
+                    </div>
+
                 </div>
 
                 <div class="bg-white p-6 rounded-lg shadow-sm">
@@ -940,9 +958,10 @@
         const setupRealtimeListeners = (uid) => {
             unsubscribeTransactions = onSnapshot(query(collection(db, dbCollections.transactions), where("userId", "==", uid)), (snapshot) => {
                 const transactionsFromDB = snapshot.docs;
+                // Guardamos los datos *reales* en allUserTransactions
                 allUserTransactions = transactionsFromDB.map(doc => ({ id: doc.id, ...doc.data() }));
                 
-                // Actualiza el dashboard
+                // Actualiza el dashboard (pasando el snapshot original)
                 renderDashboard(transactionsFromDB);
 
                 // Si el historial está visible, actualiza la tabla y el gráfico
@@ -995,7 +1014,7 @@
             const accounts = {};
 
             transactions.forEach(doc => {
-                const data = doc.data();
+                const data = doc.data(); // Esta función espera un snapshot
                 if (!accounts[data.account]) accounts[data.account] = 0;
 
                 if (data.type === 'income') {
@@ -1030,7 +1049,79 @@
             toggleBalancesVisibility(isPixelated);
         };
 
-        // *** FUNCIÓN MODIFICADA ***
+        const showPastBalances = () => {
+            const dateInput = document.getElementById('pastBalanceDate');
+            if (!dateInput.value) {
+                alert("Por favor, seleccione una fecha.");
+                return;
+            }
+
+            const targetDate = new Date(dateInput.value);
+            targetDate.setHours(23, 59, 59, 999); // Fin del día
+
+            const accounts = {};
+            // Usamos allUserTransactions (array de JS) en lugar del snapshot
+            const filteredTransactions = allUserTransactions.filter(t => t.date.toDate() <= targetDate);
+            
+            filteredTransactions.forEach(data => {
+                // allUserTransactions tiene los datos en la raíz
+                if (!accounts[data.account]) accounts[data.account] = 0;
+                if (data.type === 'income') {
+                    accounts[data.account] += data.amount;
+                } else if (data.type === 'expense') {
+                    accounts[data.account] -= data.amount;
+                }
+            });
+
+            const summaryDiv = document.getElementById('accountsSummary');
+            let html = `<h4 class="text-md font-bold text-gray-800 mb-2">Saldos al ${targetDate.toLocaleDateString('es-ES')}</h4>`;
+            let totalBalance = 0;
+
+            for (const account in accounts) {
+                totalBalance += accounts[account];
+                html += `
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm font-medium text-gray-700">${account}</span>
+                        <span class="balance-value text-sm font-bold ${accounts[account] >= 0 ? 'text-green-600' : 'text-red-600'}">${accounts[account].toFixed(2)} €</span>
+                    </div>
+                `;
+            }
+
+            html += `
+                <div class="flex items-center justify-between mt-4 border-t pt-4">
+                    <span class="text-base font-semibold text-gray-800">Saldo Total:</span>
+                    <span id="totalBalance" class="balance-value text-xl font-bold text-indigo-600">${totalBalance.toFixed(2)} €</span>
+                </div>
+            `;
+            
+            summaryDiv.innerHTML = html;
+            const isPixelated = document.getElementById('toggleBalances').checked;
+            toggleBalancesVisibility(isPixelated);
+
+            // Ocultar/mostrar botones
+            document.getElementById('calculatePastBalanceBtn').classList.add('hidden');
+            document.getElementById('pastBalanceDate').parentElement.classList.add('hidden'); // Ocultar el div del input
+            document.getElementById('resetBalanceBtn').classList.remove('hidden');
+        };
+        
+        const resetBalances = () => {
+            // Ocultar/mostrar botones
+            document.getElementById('calculatePastBalanceBtn').classList.remove('hidden');
+            document.getElementById('pastBalanceDate').parentElement.classList.remove('hidden'); // Mostrar el div del input
+            document.getElementById('resetBalanceBtn').classList.add('hidden');
+            
+            // Limpiar fecha
+            document.getElementById('pastBalanceDate').value = '';
+
+            // Volver a renderizar los saldos actuales
+            // Creamos un "falso" snapshot (que es lo que espera renderAccountsSummary)
+            const transactionsSnapshot = allUserTransactions.map(t => ({
+                data: () => t 
+            }));
+            renderAccountsSummary(transactionsSnapshot);
+        };
+
+
         const renderIncomeExpenseChart = (transactions) => {
             const currentMonth = new Date().getMonth();
             const currentYear = new Date().getFullYear();
@@ -1040,10 +1131,10 @@
             });
             
             const income = currentMonthTransactions
-                .filter(t => t.data().type === 'income' && t.data().category !== 'Transferencia' && t.data().category !== 'Saldo Inicial' && t.data().category !== 'Inversiones') // <-- CAMBIO AQUÍ
+                .filter(t => t.data().type === 'income' && t.data().category !== 'Transferencia' && t.data().category !== 'Saldo Inicial' && t.data().category !== 'Inversiones')
                 .reduce((sum, t) => sum + t.data().amount, 0);
             const expense = currentMonthTransactions
-                .filter(t => t.data().type === 'expense' && t.data().category !== 'Transferencia' && t.data().category !== 'Inversiones') // <-- CAMBIO AQUÍ
+                .filter(t => t.data().type === 'expense' && t.data().category !== 'Transferencia' && t.data().category !== 'Inversiones')
                 .reduce((sum, t) => sum + t.data().amount, 0);
                 
             const data = {
@@ -1121,7 +1212,6 @@
             categoryAnalysisChart = new Chart(document.getElementById('categoryAnalysisChart'), config);
         };
 
-        // *** FUNCIÓN MODIFICADA ***
         const renderCashFlowChart = (transactions) => {
             const monthlyData = {};
             const monthLabelsShort = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
@@ -1147,9 +1237,9 @@
                 const date = t.date.toDate();
                 const key = `${date.getFullYear()}-${date.getMonth()}`;
                 if (monthlyData[key]) {
-                    if (t.type === 'income' && t.category !== 'Transferencia' && t.category !== 'Saldo Inicial' && t.category !== 'Inversiones') { // <-- CAMBIO AQUÍ
+                    if (t.type === 'income' && t.category !== 'Transferencia' && t.category !== 'Saldo Inicial' && t.category !== 'Inversiones') {
                         monthlyData[key].income += t.amount;
-                    } else if (t.type === 'expense' && t.category !== 'Transferencia' && t.category !== 'Inversiones') { // <-- CAMBIO AQUÍ
+                    } else if (t.type === 'expense' && t.category !== 'Transferencia' && t.category !== 'Inversiones') {
                         monthlyData[key].expense += t.amount;
                     }
                 }
@@ -1200,6 +1290,10 @@
         };
 
         // Event listeners
+        
+        document.getElementById('calculatePastBalanceBtn').addEventListener('click', showPastBalances);
+        document.getElementById('resetBalanceBtn').addEventListener('click', resetBalances);
+        
         document.getElementById('updateCategoryChartBtn').addEventListener('click', renderCategoryAnalysisChart);
         
         document.getElementById('registerTransactionBtn').addEventListener('click', () => {
@@ -1296,10 +1390,23 @@
             }
         });
         
+        // *** FUNCIÓN initializeFinancesApp MODIFICADA PARA ARREGLAR ZONA HORARIA ***
         const initializeFinancesApp = () => {
             const today = new Date();
-            const firstDay = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
-            const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0).toISOString().split('T')[0];
+
+            // Creamos las fechas
+            const firstDayDate = new Date(today.getFullYear(), today.getMonth(), 1);
+            const lastDayDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
+            // Truco para ajustar la zona horaria antes de convertir a ISO string
+            // Esto evita que fechas como "1-Nov-2025 00:00" se conviertan a "31-Oct-2025" en UTC
+            firstDayDate.setMinutes(firstDayDate.getMinutes() - firstDayDate.getTimezoneOffset());
+            lastDayDate.setMinutes(lastDayDate.getMinutes() - lastDayDate.getTimezoneOffset());
+
+            // Ahora convertimos a YYYY-MM-DD
+            const firstDay = firstDayDate.toISOString().split('T')[0];
+            const lastDay = lastDayDate.toISOString().split('T')[0];
+
             document.getElementById('categoryAnalysisStartDate').value = firstDay;
             document.getElementById('categoryAnalysisEndDate').value = lastDay;
 
