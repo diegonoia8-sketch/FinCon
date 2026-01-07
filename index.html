@@ -740,7 +740,13 @@
 
             const type = document.getElementById('historyChartType').value;
             
-            const filtered = transactions.filter(t => t.type === type && t.category !== 'Transferencia' && t.category !== 'Saldo Inicial');
+            // FILTRO MODIFICADO: Excluir 'No Contabilizados'
+            const filtered = transactions.filter(t => 
+                t.type === type && 
+                t.category !== 'Transferencia' && 
+                t.category !== 'Saldo Inicial' &&
+                t.category !== 'No Contabilizados'
+            );
 
             const ctx = document.getElementById('historyChart').getContext('2d');
 
@@ -975,7 +981,7 @@
                     renderSettings(doc.data());
                 } else {
                     const defaultSettings = {
-                        categories: ["Salario", "Inversiones", "Regalo", "Otros Ingresos", "Alquiler", "Comida", "Transporte", "Ocio", "Facturas", "Salud", "Educación", "Ropa", "Otros Gastos", "Transferencia", "Saldo Inicial"],
+                        categories: ["Salario", "Inversiones", "Regalo", "Otros Ingresos", "Alquiler", "Comida", "Transporte", "Ocio", "Facturas", "Salud", "Educación", "Ropa", "Otros Gastos", "Transferencia", "Saldo Inicial", "No Contabilizados"],
                         accounts: ["Efectivo", "Cuenta Bancaria", "Tarjeta de Crédito"],
                         accountingBooks: ["Principal"]
                     };
@@ -1014,7 +1020,9 @@
             const accounts = {};
 
             transactions.forEach(doc => {
-                const data = doc.data(); // Esta función espera un snapshot
+                const data = doc.data(); 
+               
+
                 if (!accounts[data.account]) accounts[data.account] = 0;
 
                 if (data.type === 'income') {
@@ -1057,14 +1065,15 @@
             }
 
             const targetDate = new Date(dateInput.value);
-            targetDate.setHours(23, 59, 59, 999); // Fin del día
+            targetDate.setHours(23, 59, 59, 999); 
 
             const accounts = {};
-            // Usamos allUserTransactions (array de JS) en lugar del snapshot
             const filteredTransactions = allUserTransactions.filter(t => t.date.toDate() <= targetDate);
             
             filteredTransactions.forEach(data => {
-                // allUserTransactions tiene los datos en la raíz
+                // MODIFICADO: Ignorar 'No Contabilizados'
+                if (data.category === 'No Contabilizados') return;
+
                 if (!accounts[data.account]) accounts[data.account] = 0;
                 if (data.type === 'income') {
                     accounts[data.account] += data.amount;
@@ -1098,23 +1107,18 @@
             const isPixelated = document.getElementById('toggleBalances').checked;
             toggleBalancesVisibility(isPixelated);
 
-            // Ocultar/mostrar botones
             document.getElementById('calculatePastBalanceBtn').classList.add('hidden');
-            document.getElementById('pastBalanceDate').parentElement.classList.add('hidden'); // Ocultar el div del input
+            document.getElementById('pastBalanceDate').parentElement.classList.add('hidden'); 
             document.getElementById('resetBalanceBtn').classList.remove('hidden');
         };
         
         const resetBalances = () => {
-            // Ocultar/mostrar botones
             document.getElementById('calculatePastBalanceBtn').classList.remove('hidden');
-            document.getElementById('pastBalanceDate').parentElement.classList.remove('hidden'); // Mostrar el div del input
+            document.getElementById('pastBalanceDate').parentElement.classList.remove('hidden'); 
             document.getElementById('resetBalanceBtn').classList.add('hidden');
             
-            // Limpiar fecha
             document.getElementById('pastBalanceDate').value = '';
 
-            // Volver a renderizar los saldos actuales
-            // Creamos un "falso" snapshot (que es lo que espera renderAccountsSummary)
             const transactionsSnapshot = allUserTransactions.map(t => ({
                 data: () => t 
             }));
@@ -1125,9 +1129,14 @@
         const renderIncomeExpenseChart = (transactions) => {
             const currentMonth = new Date().getMonth();
             const currentYear = new Date().getFullYear();
+            
+            // MODIFICADO: Excluir 'No Contabilizados'
             const currentMonthTransactions = transactions.filter(t => {
                 const date = t.data().date.toDate();
-                return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
+                const cat = t.data().category;
+                return date.getMonth() === currentMonth && 
+                       date.getFullYear() === currentYear &&
+                       cat !== 'No Contabilizados';
             });
             
             const income = currentMonthTransactions
@@ -1166,7 +1175,13 @@
             const startDateValue = document.getElementById('categoryAnalysisStartDate').value;
             const endDateValue = document.getElementById('categoryAnalysisEndDate').value;
 
-            let filtered = allUserTransactions.filter(t => t.type === type && t.category !== 'Transferencia' && t.category !== 'Saldo Inicial');
+            // MODIFICADO: Excluir 'No Contabilizados'
+            let filtered = allUserTransactions.filter(t => 
+                t.type === type && 
+                t.category !== 'Transferencia' && 
+                t.category !== 'Saldo Inicial' && 
+                t.category !== 'No Contabilizados'
+            );
             
             if (startDateValue) {
                 const start = new Date(startDateValue);
@@ -1183,6 +1198,15 @@
                 acc[t.category] = (acc[t.category] || 0) + t.amount;
                 return acc;
             }, {});
+
+            // MODIFICADO: Calcular y mostrar el Total
+            const totalAmount = Object.values(categories).reduce((sum, val) => sum + val, 0);
+            
+            const canvasElem = document.getElementById('categoryAnalysisChart');
+            const headerElem = canvasElem.closest('.bg-white').querySelector('h2');
+            if (headerElem) {
+                headerElem.innerHTML = `Análisis por Categoría <span class="text-sm font-normal text-indigo-600 ml-2">(Total: ${totalAmount.toFixed(2)} €)</span>`;
+            }
             
             const data = {
                 labels: Object.keys(categories),
@@ -1234,6 +1258,10 @@
 
             recentTransactions.forEach(tDoc => {
                 const t = tDoc.data();
+                
+                // MODIFICADO: Ignorar 'No Contabilizados'
+                if (t.category === 'No Contabilizados') return;
+
                 const date = t.date.toDate();
                 const key = `${date.getFullYear()}-${date.getMonth()}`;
                 if (monthlyData[key]) {
@@ -1390,20 +1418,15 @@
             }
         });
         
-        // *** FUNCIÓN initializeFinancesApp MODIFICADA PARA ARREGLAR ZONA HORARIA ***
         const initializeFinancesApp = () => {
             const today = new Date();
 
-            // Creamos las fechas
             const firstDayDate = new Date(today.getFullYear(), today.getMonth(), 1);
             const lastDayDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 
-            // Truco para ajustar la zona horaria antes de convertir a ISO string
-            // Esto evita que fechas como "1-Nov-2025 00:00" se conviertan a "31-Oct-2025" en UTC
             firstDayDate.setMinutes(firstDayDate.getMinutes() - firstDayDate.getTimezoneOffset());
             lastDayDate.setMinutes(lastDayDate.getMinutes() - lastDayDate.getTimezoneOffset());
 
-            // Ahora convertimos a YYYY-MM-DD
             const firstDay = firstDayDate.toISOString().split('T')[0];
             const lastDay = lastDayDate.toISOString().split('T')[0];
 
