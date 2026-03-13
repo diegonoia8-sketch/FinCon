@@ -983,7 +983,7 @@
                 
                 const diffTime = Math.abs(now - oldestDate);
                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                const totalMonths = Math.max(1, Math.ceil(diffDays / 30));
+                const totalMonths = Math.max(1, Math.floor(diffDays / 30));
 
                 const last30Txs = allUserTransactions.filter(t => t.date && t.date.toDate() >= thirtyDaysAgo);
                 const excludeCategories = ['Transferencia', 'Saldo Inicial', 'Inversiones', 'No Contabilizados'];
