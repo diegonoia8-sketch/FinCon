@@ -1017,8 +1017,8 @@
                     last30[t.category] = (last30[t.category] || 0) + t.amount;
                 });
 
-                const avgIncome = allUserTransactions.filter(t => t.type === 'income' && !excludeCategories.includes(t.category)).reduce((s,t) => s+t.amount, 0) / totalMonths;
-                const avgExpense = allUserTransactions.filter(t => t.type === 'expense' && !excludeCategories.includes(t.category)).reduce((s,t) => s+t.amount, 0) / totalMonths;
+                const avgIncome = allUserTransactions.filter(t => t.type === 'income' && !excludeCategories.includes(t.category)).reduce((s,t) => s+t.amount, 0) / (totalMonths+1);
+                const avgExpense = allUserTransactions.filter(t => t.type === 'expense' && !excludeCategories.includes(t.category)).reduce((s,t) => s+t.amount, 0) / (totalMonths+1);
 
                 /* --- CÁLCULO DE COMBUSTIBLE --- */
                 const extractFuelData = (t) => {
