@@ -7,7 +7,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
-    <!-- Marked.js para renderizar markdown en el chat -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
@@ -106,7 +105,6 @@
         </div>
     </div>
 
-    <!-- PANTALLA DE CARGA PARA PDF -->
     <div id="pdfLoadingOverlay" class="hidden fixed inset-0 bg-white z-[9999] flex-col items-center justify-center">
         <div class="spinner-indigo mb-4"></div>
         <h2 class="text-xl font-bold text-gray-800">Generando reporte con IA...</h2>
@@ -134,7 +132,6 @@
         <main class="flex-grow p-4 md:p-6 pb-20 overflow-y-auto">
     
             <div id="dashboard" class="tab-content grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                <!-- BOTÓN PARA GENERAR PDF -->
                 <div class="col-span-1 md:col-span-2 lg:col-span-3 flex justify-end">
                     <button id="generatePdfBtn" class="flex items-center bg-blue-600 text-white text-sm font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 transition duration-300">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -252,7 +249,6 @@
                     <div id="incomeExpenseForm" class="bg-white p-6 rounded-lg shadow-sm hidden">
                         <div class="flex justify-between items-center mb-4">
                             <h3 id="formTitle" class="text-lg font-semibold text-gray-800"></h3>
-                            <!-- BOTÓN DE ESCANEAR TICKET IA -->
                             <div>
                                 <input type="file" id="receiptInput" accept="image/*" capture="environment" class="hidden">
                                 <button type="button" id="scanReceiptBtn" class="flex items-center bg-purple-600 text-white text-sm font-semibold py-2 px-4 rounded shadow-md hover:bg-purple-700 transition duration-300">
@@ -432,7 +428,6 @@
                 <div class="bg-white p-6 rounded-lg shadow-sm mb-6">
                     <h2 class="text-lg font-semibold text-gray-800 mb-4">Gestionar Atributos y Sistema</h2>
                     
-                    <!-- CONFIGURACIÓN API KEY IA -->
                     <div class="mb-8 p-4 bg-purple-50 rounded-lg border border-purple-200">
                         <h3 class="font-semibold text-purple-800 mb-2 flex items-center">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
@@ -488,7 +483,6 @@
 
         </main>
 
-        <!-- CHATBOT FLOTANTE -->
         <div id="openChatBtn" class="fixed bottom-20 md:bottom-6 right-6 bg-purple-600 text-white p-4 rounded-full shadow-lg cursor-pointer hover:bg-purple-700 transition duration-300 z-50">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
@@ -521,8 +515,6 @@
                 </form>
             </div>
         </div>
-        <!-- FIN CHATBOT -->
-
         <nav class="fixed bottom-0 left-0 right-0 bg-white shadow-lg md:hidden z-40">
             <div class="flex justify-around items-center h-16">
                 <button id="dashboardBtn" class="tab-button flex flex-col items-center justify-center p-2 text-gray-500 hover:text-indigo-600 active" data-tab="dashboard">
@@ -558,7 +550,6 @@
         </nav>
     </div>
 
-    <!-- CONTENEDOR OCULTO PARA EL REPORTE (Aparece sólo al imprimir o detrás del Overlay) -->
     <div id="pdfContainer" style="display: none; position: absolute; left: -9999px; width: 1000px; padding: 40px; background: white;">
         <h1 class="text-3xl font-bold text-gray-800 mb-2 border-b-2 border-gray-800 pb-2">Resumen Financiero (Últimos 30 Días)</h1>
         <p class="text-gray-600 mb-8 font-medium text-base" id="pdfDateRange"></p>
@@ -566,14 +557,12 @@
         <div class="grid grid-cols-2 gap-8 mb-8 avoid-break">
             <div class="p-2 bg-white avoid-break">
                 <h3 class="text-xl font-semibold text-center mb-4 text-gray-800">Ingresos vs Gastos</h3>
-                <!-- Altura forzada para que ChartJS no se rompa al imprimir -->
                 <div class="flex justify-center" style="height: 300px; width: 100%;">
                     <canvas id="pdfChart1"></canvas>
                 </div>
             </div>
             <div class="p-2 bg-white avoid-break">
                 <h3 class="text-xl font-semibold text-center mb-4 text-gray-800">% Gasto por Categoría</h3>
-                <!-- Altura forzada para que ChartJS no se rompa al imprimir -->
                 <div class="flex justify-center" style="height: 300px; width: 100%;">
                     <canvas id="pdfChart2"></canvas>
                 </div>
@@ -590,8 +579,7 @@
         <div class="p-2 bg-white avoid-break mt-6">
             <h3 class="text-2xl font-bold text-gray-800 mb-6 avoid-break">Análisis e Insights (IA)</h3>
             <div id="pdfAiAnalysis" class="prose max-w-none text-gray-800 text-base leading-relaxed">
-                <!-- Se inyecta la respuesta HTML de Gemini aquí -->
-            </div>
+                </div>
         </div>
     </div>
 
@@ -626,6 +614,11 @@
         let unsubscribeTransactions;
         let unsubscribeSettings;
         let allUserTransactions = [];
+        
+        // Variables globales para pasar a la IA
+        let userCategories = [];
+        let userAccounts = [];
+        let userAccountingBooks = [];
         
         const showAuthScreen = () => {
             authScreen.classList.remove('hidden');
@@ -893,10 +886,54 @@
             const systemPrompt = `Eres el asistente financiero personal del usuario. Tienes acceso a sus transacciones. 
             Responde a sus preguntas basándote en estos datos: ${JSON.stringify(minimalTx)}. 
             Historial de charla: ${JSON.stringify(chatHistory.slice(-4))}.
-            Sé conciso, amigable y da cifras exactas si se te piden. Responde usando formato Markdown (negritas, listas).`;
+            Sé conciso, amigable y da cifras exactas si se te piden. Responde usando formato Markdown (negritas, listas).
+            
+            INSTRUCCIÓN CRÍTICA PARA REGISTRAR TRANSACCIONES:
+            Si el usuario te pide registrar, guardar, añadir o anotar un gasto o ingreso, DEBES extraer los datos y devolver un bloque de código JSON (usando \`\`\`json y \`\`\`) con la siguiente estructura:
+            {
+              "intent": "register_transaction",
+              "type": "expense" (si es gasto) o "income" (si es ingreso),
+              "amount": (número decimal),
+              "category": "(Elige la que mejor encaje de esta lista: ${userCategories.join(', ')})",
+              "account": "(Elige la que mejor encaje de esta lista: ${userAccounts.join(', ')}. Si no se menciona, usa: ${userAccounts[0] || 'Efectivo'})",
+              "accountingBook": "(Usa 'Contabilidad A' por defecto, a menos que el usuario indique explícitamente otra de la lista [${userAccountingBooks.join(', ')}])",
+              "description": "(Genera una descripción breve y representativa del gasto/ingreso)"
+            }
+            Asegúrate de clasificar correctamente si es gasto o ingreso. Además del bloque JSON, puedes incluir un mensaje de confirmación amigable. Si el usuario no quiere registrar nada, responde normalmente.`;
 
             try {
-                const response = await callGemini(systemPrompt, text);
+                let response = await callGemini(systemPrompt, text);
+                
+                // Buscar el bloque JSON para registrar transacción
+                const jsonMatch = response.match(/```json\n?([\s\S]*?)\n?```/);
+                if (jsonMatch) {
+                    try {
+                        const txData = JSON.parse(jsonMatch[1].trim());
+                        if (txData.intent === "register_transaction") {
+                            const data = {
+                                type: txData.type,
+                                description: txData.description,
+                                amount: parseFloat(txData.amount),
+                                category: txData.category,
+                                date: new Date(),
+                                account: txData.account,
+                                accountingBook: txData.accountingBook || 'Contabilidad A',
+                                userId: userId,
+                                createdAt: serverTimestamp()
+                            };
+                            await addDoc(collection(db, dbCollections.transactions), data);
+                            
+                            // Limpiar el JSON de la respuesta visible
+                            response = response.replace(/```json\n?[\s\S]*?\n?```/, '').trim();
+                            if (!response) {
+                                response = `✅ Listo. He registrado un ${txData.type === 'expense' ? 'gasto' : 'ingreso'} de **${txData.amount}€** en la categoría **${txData.category}** (Cuenta: ${txData.account}).`;
+                            }
+                        }
+                    } catch (parseError) {
+                        console.error("Error al parsear JSON del bot: ", parseError);
+                    }
+                }
+
                 addMessageToChat(response, false);
                 chatHistory.push({ user: text, ai: response });
             } catch (error) {
@@ -1174,6 +1211,8 @@
                 // Pausa para que el navegador asimile el DOM antes de invocar la impresión
                 await new Promise(r => setTimeout(r, 600));
 
+
+
                 // LLAMADA NATIVA: Esto abrirá el diálogo "Guardar como PDF" del navegador.
                 window.print();
 
@@ -1389,6 +1428,11 @@
         };
 
         const renderSettings = (settings) => {
+            // Guardamos las configuraciones para que la IA tenga contexto
+            userCategories = settings.categories || [];
+            userAccounts = settings.accounts || [];
+            userAccountingBooks = settings.accountingBooks || [];
+
             const renderList = (elementId, items, type) => {
                 const list = document.getElementById(elementId);
                 list.innerHTML = '';
