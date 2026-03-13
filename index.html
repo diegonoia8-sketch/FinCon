@@ -55,7 +55,44 @@
             height: 20px;
             animation: spin 1s linear infinite;
         }
+        .spinner-indigo {
+            border: 4px solid rgba(79, 70, 229, 0.2);
+            border-left-color: #4f46e5;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* ESTILOS PARA LA IMPRESIÓN/GENERACIÓN DE PDF NATIVA */
+        @media print {
+            body { 
+                background-color: white !important; 
+                margin: 0;
+                padding: 0;
+            }
+            /* Ocultamos toda la app normal al imprimir */
+            #mainApp, #authScreen, #openChatBtn, #chatWidget, #pdfLoadingOverlay {
+                display: none !important;
+            }
+            /* Mostramos solo el contenedor del PDF */
+            #pdfContainer {
+                display: block !important;
+                position: static !important; /* Reseteamos de absolute a static */
+                width: 100% !important;
+                max-width: 100% !important;
+                left: auto !important;
+                top: auto !important;
+                box-shadow: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            .avoid-break {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col relative">
@@ -69,7 +106,14 @@
         </div>
     </div>
 
-    <div id="mainApp" class="hidden flex flex-col flex-grow">
+    <!-- PANTALLA DE CARGA PARA PDF -->
+    <div id="pdfLoadingOverlay" class="hidden fixed inset-0 bg-white z-[9999] flex-col items-center justify-center">
+        <div class="spinner-indigo mb-4"></div>
+        <h2 class="text-xl font-bold text-gray-800">Generando reporte con IA...</h2>
+        <p class="text-gray-500 text-sm mt-2">Se abrirá el diálogo para guardar como PDF en breve.</p>
+    </div>
+
+    <div id="mainApp" class="hidden flex flex-col flex-grow z-10 relative">
         <header class="bg-white shadow-sm py-4 px-6 flex items-center justify-between">
             <div class="flex items-center">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-indigo-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -90,6 +134,16 @@
         <main class="flex-grow p-4 md:p-6 pb-20 overflow-y-auto">
     
             <div id="dashboard" class="tab-content grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                <!-- BOTÓN PARA GENERAR PDF -->
+                <div class="col-span-1 md:col-span-2 lg:col-span-3 flex justify-end">
+                    <button id="generatePdfBtn" class="flex items-center bg-blue-600 text-white text-sm font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 transition duration-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <span id="generatePdfText">Resumen IA (Últimos 30 Días) en PDF</span>
+                    </button>
+                </div>
+
                 <div class="bg-white p-6 rounded-lg shadow-sm">
                     <div class="flex items-center justify-between mb-4">
                         <h2 class="text-lg font-semibold text-gray-800">Resumen de Cuentas</h2>
@@ -386,7 +440,7 @@
                             </svg>
                             Configuración de IA (Google Gemini)
                         </h3>
-                        <p class="text-sm text-gray-600 mb-3">Para usar el escaner de tickets y el chatbot, necesitas una API Key gratuita de <a href="https://aistudio.google.com/" target="_blank" class="text-indigo-600 underline">Google AI Studio</a>.</p>
+                        <p class="text-sm text-gray-600 mb-3">Para usar el escaner de tickets, el chatbot y el reporte de 30 días, necesitas una API Key gratuita de <a href="https://aistudio.google.com/" target="_blank" class="text-indigo-600 underline">Google AI Studio</a>.</p>
                         <div class="flex flex-col sm:flex-row gap-2">
                             <input type="password" id="geminiApiKey" class="flex-grow rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border" placeholder="Pega tu API Key de Gemini aquí">
                             <button id="saveApiKeyBtn" class="bg-purple-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-purple-700 transition duration-300">
@@ -502,6 +556,43 @@
                 </button>
             </div>
         </nav>
+    </div>
+
+    <!-- CONTENEDOR OCULTO PARA EL REPORTE (Aparece sólo al imprimir o detrás del Overlay) -->
+    <div id="pdfContainer" style="display: none; position: absolute; left: -9999px; width: 1000px; padding: 40px; background: white;">
+        <h1 class="text-3xl font-bold text-gray-800 mb-2 border-b-2 border-gray-800 pb-2">Resumen Financiero (Últimos 30 Días)</h1>
+        <p class="text-gray-600 mb-8 font-medium text-base" id="pdfDateRange"></p>
+        
+        <div class="grid grid-cols-2 gap-8 mb-8 avoid-break">
+            <div class="p-2 bg-white avoid-break">
+                <h3 class="text-xl font-semibold text-center mb-4 text-gray-800">Ingresos vs Gastos</h3>
+                <!-- Altura forzada para que ChartJS no se rompa al imprimir -->
+                <div class="flex justify-center" style="height: 300px; width: 100%;">
+                    <canvas id="pdfChart1"></canvas>
+                </div>
+            </div>
+            <div class="p-2 bg-white avoid-break">
+                <h3 class="text-xl font-semibold text-center mb-4 text-gray-800">% Gasto por Categoría</h3>
+                <!-- Altura forzada para que ChartJS no se rompa al imprimir -->
+                <div class="flex justify-center" style="height: 300px; width: 100%;">
+                    <canvas id="pdfChart2"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-2 bg-white mb-8 avoid-break">
+            <h3 class="text-xl font-semibold text-center mb-4 text-gray-800">Gastos: Últimos 30 Días vs Media Mensual</h3>
+            <div class="flex justify-center" style="height: 350px; width: 100%;">
+                <canvas id="pdfChart3"></canvas>
+            </div>
+        </div>
+
+        <div class="p-2 bg-white avoid-break mt-6">
+            <h3 class="text-2xl font-bold text-gray-800 mb-6 avoid-break">Análisis e Insights (IA)</h3>
+            <div id="pdfAiAnalysis" class="prose max-w-none text-gray-800 text-base leading-relaxed">
+                <!-- Se inyecta la respuesta HTML de Gemini aquí -->
+            </div>
+        </div>
     </div>
 
     <script type="module">
@@ -687,7 +778,6 @@
             const parts = [{ text: `${systemPrompt}\n\nUser: ${userPrompt}` }];
             
             if (base64Image) {
-                // Separar mimeType de la data
                 const mimeType = base64Image.match(/data:([a-zA-Z0-9]+\/[a-zA-Z0-9-.+]+).*,.*/)[1];
                 const data = base64Image.split(',')[1];
                 parts.push({
@@ -735,12 +825,9 @@
                     Devuelve EXCLUSIVAMENTE un objeto JSON válido con esta estructura: {"description": "Nombre", "amount": 10.50, "date": "YYYY-MM-DD"}. No incluyas markdown ni texto adicional.`;
                     
                     let result = await callGemini("Eres un bot extractor de recibos. Responde solo con JSON.", prompt, base64Image);
-                    
-                    // Limpiar markdown si la IA lo añade
                     result = result.replace(/```json/g, '').replace(/```/g, '').trim();
                     const jsonResult = JSON.parse(result);
 
-                    // Autorellenar formulario
                     if(jsonResult.description) document.getElementById('description').value = jsonResult.description;
                     if(jsonResult.amount) document.getElementById('amount').value = jsonResult.amount;
                     if(jsonResult.date) document.getElementById('date').value = jsonResult.date;
@@ -752,7 +839,7 @@
                 } finally {
                     scanReceiptBtn.classList.remove('opacity-50', 'cursor-wait');
                     scanReceiptText.textContent = "Escanear Ticket (IA)";
-                    receiptInput.value = ''; // Reset
+                    receiptInput.value = ''; 
                 }
             };
         });
@@ -778,7 +865,7 @@
             if(isUser) {
                 div.textContent = text;
             } else {
-                div.innerHTML = marked.parse(text); // Usar marked para que el texto de la IA se vea bien (negritas, listas)
+                div.innerHTML = marked.parse(text); 
             }
             chatMessages.appendChild(div);
             chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -795,8 +882,6 @@
             chatSendIcon.classList.add('hidden');
             chatLoadingIcon.classList.remove('hidden');
 
-            // Preparar datos para que la IA entienda las finanzas
-            // Resumimos para no enviar demasiados tokens y saturar la API
             const minimalTx = allUserTransactions.map(t => ({
                 d: new Date(t.date.seconds*1000).toISOString().split('T')[0],
                 t: t.type === 'income' ? '+' : '-',
@@ -819,6 +904,288 @@
             } finally {
                 chatSendIcon.classList.remove('hidden');
                 chatLoadingIcon.classList.add('hidden');
+            }
+        });
+
+        // 3. GENERACIÓN DE PDF NATIVA (IMPRIMIR A PDF)
+        const generatePdfBtn = document.getElementById('generatePdfBtn');
+        const generatePdfText = document.getElementById('generatePdfText');
+        const pdfLoadingOverlay = document.getElementById('pdfLoadingOverlay');
+        const pdfContainer = document.getElementById('pdfContainer');
+        let pdfChart1Instance = null;
+        let pdfChart2Instance = null;
+        let pdfChart3Instance = null;
+
+        generatePdfBtn.addEventListener('click', async () => {
+            if (!localStorage.getItem('geminiApiKey')) {
+                alert("Por favor, configura tu API Key de Gemini en la pestaña de Configuración para usar esta función.");
+                return;
+            }
+
+            try {
+                // Bloquear botón y mostrar pantalla de carga
+                generatePdfBtn.disabled = true;
+                pdfLoadingOverlay.classList.remove('hidden');
+                pdfLoadingOverlay.classList.add('flex');
+                
+                // Mostrar contenedor fuera de la pantalla temporalmente para que ChartJS lo dibuje a tamaño real
+                pdfContainer.style.display = 'block';
+
+                // Fechas
+                const now = new Date();
+                const thirtyDaysAgo = new Date();
+                thirtyDaysAgo.setDate(now.getDate() - 30);
+
+                let oldestDate = now;
+                allUserTransactions.forEach(t => {
+                    if (t.date && t.date.toDate() < oldestDate) {
+                        oldestDate = t.date.toDate();
+                    }
+                });
+                
+                const diffTime = Math.abs(now - oldestDate);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                const totalMonths = Math.max(1, diffDays / 30);
+
+                const last30Txs = allUserTransactions.filter(t => t.date && t.date.toDate() >= thirtyDaysAgo);
+                const excludeCategories = ['Transferencia', 'Saldo Inicial', 'Inversiones', 'No Contabilizados'];
+
+                // Ordenar transacciones de más antigua a más reciente para la IA
+                last30Txs.sort((a, b) => a.date.toDate() - b.date.toDate());
+
+                // Mapear los campos estrictos requeridos para el prompt
+                const txsForPrompt = last30Txs.map(t => ({
+                    Fecha: t.date.toDate().toLocaleDateString('es-ES'),
+                    Descripción: t.description,
+		    Tipo: t.type === 'income' ? 'Ingreso' : 'Gasto',
+                    Cantidad: t.amount,
+                    Categoría: t.category,
+                    Cuenta: t.account
+                }));
+
+                const inc30 = last30Txs.filter(t => t.type === 'income' && !excludeCategories.includes(t.category)).reduce((s,t) => s+t.amount, 0);
+                const exp30 = last30Txs.filter(t => t.type === 'expense' && !excludeCategories.includes(t.category)).reduce((s,t) => s+t.amount, 0);
+
+                const averages = {};
+                const last30 = {};
+
+                allUserTransactions.forEach(t => {
+                    if (t.type !== 'expense' || excludeCategories.includes(t.category)) return;
+                    averages[t.category] = (averages[t.category] || 0) + (t.amount / totalMonths);
+                });
+
+                last30Txs.forEach(t => {
+                    if (t.type !== 'expense' || excludeCategories.includes(t.category)) return;
+                    last30[t.category] = (last30[t.category] || 0) + t.amount;
+                });
+
+                const avgIncome = allUserTransactions.filter(t => t.type === 'income' && !excludeCategories.includes(t.category)).reduce((s,t) => s+t.amount, 0) / totalMonths;
+                const avgExpense = allUserTransactions.filter(t => t.type === 'expense' && !excludeCategories.includes(t.category)).reduce((s,t) => s+t.amount, 0) / totalMonths;
+
+                /* --- CÁLCULO DE COMBUSTIBLE --- */
+                const extractFuelData = (t) => {
+                    const desc = t.description || "";
+                    // Busca formato como "40L", "40.5 L", "40l"
+                    const lMatch = desc.match(/(\d+(?:[.,]\d+)?)\s*l\b/i);
+                    // Busca formato como "120000km", "120000 kms"
+                    const kmMatch = desc.match(/(\d+(?:[.,]\d+)?)\s*km(?:s)?\b/i);
+                    if (lMatch && kmMatch) {
+                        return {
+                            date: t.date.toDate(),
+                            amount: t.amount,
+                            liters: parseFloat(lMatch[1].replace(',', '.')),
+                            kms: parseFloat(kmMatch[1].replace(',', '.'))
+                        };
+                    }
+                    return null;
+                };
+
+                const calcConsumption = (txs) => {
+                    const validTxs = txs.map(extractFuelData).filter(x => x !== null);
+                    validTxs.sort((a, b) => a.date - b.date); // Ordenar de antiguo a nuevo
+                    if (validTxs.length < 2) return null; // Necesitamos al menos 2 registros para la diferencia
+
+                    const oldest = validTxs[0];
+                    const newest = validTxs[validTxs.length - 1];
+                    const diffKm = newest.kms - oldest.kms;
+                    
+                    if (diffKm <= 0) return null;
+
+                    let sumL = 0, sumEur = 0;
+                    // Sumatorio excluyendo el registro más antiguo (empezamos el bucle en 1)
+                    for (let i = 1; i < validTxs.length; i++) {
+                        sumL += validTxs[i].liters;
+                        sumEur += validTxs[i].amount;
+                    }
+
+                    return {
+                        lPer100: (sumL / diffKm) * 100,
+                        eurPer100: (sumEur / diffKm) * 100,
+                        diffKm: diffKm,
+                        sumL: sumL,
+                        sumEur: sumEur
+                    };
+                };
+
+                const historicalFuel = calcConsumption(allUserTransactions.filter(t => t.category === 'Combustible'));
+                const last30Fuel = calcConsumption(last30Txs.filter(t => t.category === 'Combustible'));
+
+                let fuelContext = "No hay datos suficientes con el formato correcto en las descripciones de 'Combustible' para calcular el consumo.";
+                if (historicalFuel || last30Fuel) {
+                    fuelContext = "-- CÁLCULOS DE CONSUMO DE COMBUSTIBLE PRECALCULADOS --\n";
+                    if (historicalFuel) fuelContext += `Histórico: ${historicalFuel.lPer100.toFixed(2)} L/100km y ${historicalFuel.eurPer100.toFixed(2)} €/100km (Basado en la suma de ${historicalFuel.sumL.toFixed(2)} L y ${historicalFuel.sumEur.toFixed(2)} € sobre una diferencia de ${historicalFuel.diffKm} Kms).\n`;
+                    if (last30Fuel) fuelContext += `Mes Actual: ${last30Fuel.lPer100.toFixed(2)} L/100km y ${last30Fuel.eurPer100.toFixed(2)} €/100km (Basado en la suma de ${last30Fuel.sumL.toFixed(2)} L y ${last30Fuel.sumEur.toFixed(2)} € sobre una diferencia de ${last30Fuel.diffKm} Kms).\n`;
+                }
+                /* ------------------------------ */
+
+                const prompt = `Analiza este resumen financiero de los últimos 30 días comparado con su media histórica.
+                -- INGRESOS Y GASTOS --
+                Ingresos Media: ${avgIncome.toFixed(2)}€ | Ingresos últimos 30d: ${inc30.toFixed(2)}€
+                Gastos Media: ${avgExpense.toFixed(2)}€ | Gastos últimos 30d: ${exp30.toFixed(2)}€
+
+                -- MEDIA MENSUAL DE GASTOS POR CATEGORÍA --
+                ${JSON.stringify(averages)}
+
+                -- GASTOS ÚLTIMOS 30 DÍAS POR CATEGORÍA --
+                ${JSON.stringify(last30)}
+
+                -- LISTA DE TRANSACCIONES ÚLTIMOS 30 DÍAS (ORDENADA POR FECHA) --
+                ${JSON.stringify(txsForPrompt)}
+
+                ${fuelContext}
+
+                Eres un analista y asesor financiero. Escribe un análisis comparando ingresos y gastos. Fíjate en las categorías donde ha gastado más en estos 30 días respecto a la media e hipotetiza a qué puede deberse observando las descripciones. Ofrece una breve recomendación final. El resultado objetivo es una tabla (todos los valores en ella deben estar centrados) con este análisis y el ahorro y debajo de ella un pequeño texto con una conclusión final. Una pequeña tabla con los 5 gastos (por descripción, no por categoría) más importantes del mes (en esta tabla no tengas en cuenta los gastos con categoría "EXLABESA") de LISTA DE TRANSACCIONES ÚLTIMOS 30 DÍAS (ORDENADA POR FECHA). Una pequeña tabla con los gastos en las 3 categorías más importantes del mes. Quiero que sea un formato minimalista y elegante. No queremos que las tablas tengan bordes. 
+
+                IMPORTANTE SOBRE EL COMBUSTIBLE: Al final del análisis, añade una sección dedicada al consumo de coche. Utiliza los datos exactos que te he proporcionado arriba (en el bloque "CÁLCULOS DE CONSUMO DE COMBUSTIBLE PRECALCULADOS"). Compara brevemente el histórico con el mensual mencionando cuántos litros, euros y Kms totales se han usado para la fórmula. Organiza tu respuesta en una tabla.
+
+		Para el analisis financiero ten en cuenta que todos los gastos con concepto "EXLABESA" son gastos reembolsables a final de mes. No hagas mayor mención a estos gastos en la conclusión final.
+
+                Para este reporte no tengas en cuenta las siguientes categorías (ni en ingresos ni en gastos): "No Contabilizados", "Transferencia" , "Inversiones" , "Saldo Inicial".
+
+                Haz que tu respuesta se ajuste perfectamente a un formato A3 Horizontal. Utiliza colores oscuros o negros sobre fondo blanco. NO apliques fondos de color a las tablas ni a los contenedores.
+                
+                IMPORTANTE: Devuelve la respuesta utilizando formato HTML simple (h4, p, ul, li, strong, table, th, td, tr) para que sea visualmente muy atractivo y profesional. No uses la etiqueta de bloque de código de markdown (\`\`\`html). No saludes, ve directo al grano.`;
+
+                const aiResponse = await callGemini("Eres un asesor financiero experto. Devuelve la información formateada en HTML simple y profesional.", prompt);
+                const cleanHtml = aiResponse.replace(/```html/g, '').replace(/```/g, '').trim();
+
+                document.getElementById('pdfDateRange').innerText = `Período: ${thirtyDaysAgo.toLocaleDateString('es-ES')} - ${now.toLocaleDateString('es-ES')}`;
+                document.getElementById('pdfAiAnalysis').innerHTML = cleanHtml;
+
+                if (pdfChart1Instance) pdfChart1Instance.destroy();
+                if (pdfChart2Instance) pdfChart2Instance.destroy();
+                if (pdfChart3Instance) pdfChart3Instance.destroy();
+
+                // 1. Gráfico Ingresos vs Gastos con cantidades explícitas
+                pdfChart1Instance = new Chart(document.getElementById('pdfChart1'), {
+                    type: 'doughnut',
+                    data: { 
+                        labels: ['Ingresos (' + inc30.toFixed(2) + ' €)', 'Gastos (' + exp30.toFixed(2) + ' €)'], 
+                        datasets: [{ data: [inc30, exp30], backgroundColor: ['#4f46e5', '#ef4444'] }] 
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { position: 'bottom' } } } 
+                });
+
+                // 2. Gráfico % Gasto por Categoría
+                const totalLast30Exp = Object.values(last30).reduce((a,b) => a+b, 0);
+                const catLabels = Object.keys(last30).map(c => {
+                    const pct = totalLast30Exp > 0 ? ((last30[c] / totalLast30Exp) * 100).toFixed(1) : 0;
+                    return c + ' (' + pct + '%)';
+                });
+
+                pdfChart2Instance = new Chart(document.getElementById('pdfChart2'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: catLabels,
+                        datasets: [{ 
+                            data: Object.values(last30), 
+                            backgroundColor: ['#4c51bf', '#63b3ed', '#4fd1c5', '#f6ad55', '#e53e3e', '#d53f8c', '#a0aec0', '#9f7aea', '#38b2ac', '#ed8936'] 
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { position: 'right' } } }
+                });
+
+                // 3. Gráfico Comparación Últimos 30 días VS Media Mensual Histórica
+                const categoriesList = Array.from(new Set([...Object.keys(averages), ...Object.keys(last30)]));
+                pdfChart3Instance = new Chart(document.getElementById('pdfChart3'), {
+                    type: 'bar',
+                    data: {
+                        labels: categoriesList,
+                        datasets: [
+                            { label: 'Media Mensual Histórica', data: categoriesList.map(c => averages[c] || 0), backgroundColor: '#4f46e5' },
+                            { label: 'Últimos 30 días', data: categoriesList.map(c => last30[c] || 0), backgroundColor: '#ef4444' }
+                        ]
+                    },
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false, 
+                        animation: false, 
+                        plugins: { 
+                            legend: { position: 'bottom' } 
+                        },
+                        scales: {
+                            x: {
+                                ticks: {
+                                    autoSkip: false, // Fuerza a dibujar todas las etiquetas
+                                    maxRotation: 90, // Etiquetas totalmente en vertical
+                                    minRotation: 90, // Etiquetas totalmente en vertical
+                                    font: { size: 10 }
+                                }
+                            }
+                        }
+                    },
+                    // PLUGIN PERSONALIZADO PARA DIBUJAR LOS NÚMEROS DENTRO DE LAS BARRAS
+                    plugins: [{
+                        id: 'numerosDentroDeBarras',
+                        afterDatasetsDraw(chart) {
+                            const { ctx } = chart;
+                            chart.data.datasets.forEach((dataset, i) => {
+                                chart.getDatasetMeta(i).data.forEach((bar, index) => {
+                                    const value = dataset.data[index];
+                                    
+                                    // Aumentamos un poco la condición de altura para asegurar que cabe el texto en vertical
+                                    if (value > 0 && (bar.base - bar.y) > 25) {
+                                        ctx.save();
+                                        ctx.fillStyle = '#ffffff'; 
+                                        ctx.font = 'bold 11px Arial';
+                                        ctx.textAlign = 'center';
+                                        ctx.textBaseline = 'middle';
+                                        
+                                        // 1. Calculamos el centro vertical de la barra
+                                        const centroY = bar.y + (bar.base - bar.y) / 2;
+                                        
+                                        // 2. Movemos el punto de origen de dibujo a ese centro exacto
+                                        ctx.translate(bar.x, centroY);
+                                        
+                                        // 3. Rotamos el lienzo -90 grados (de abajo hacia arriba)
+                                        ctx.rotate(-Math.PI / 2);
+                                        
+                                        // 4. Dibujamos el texto en (0,0) ya que hemos movido el origen ahí
+                                        ctx.fillText(value.toFixed(0) + '€', 0, 0);
+                                        
+                                        ctx.restore();
+                                    }
+                                });
+                            });
+                        }
+                    }]
+                });
+
+                // Pausa para que el navegador asimile el DOM antes de invocar la impresión
+                await new Promise(r => setTimeout(r, 600));
+
+                // LLAMADA NATIVA: Esto abrirá el diálogo "Guardar como PDF" del navegador.
+                window.print();
+
+            } catch (err) {
+                console.error(err);
+                alert("Error al generar el informe: " + err.message);
+            } finally {
+                // Pase lo que pase, ocultar overlay y contenedor
+                pdfContainer.style.display = 'none';
+                pdfLoadingOverlay.classList.remove('flex');
+                pdfLoadingOverlay.classList.add('hidden');
+                generatePdfBtn.disabled = false;
             }
         });
 
@@ -1221,6 +1588,3 @@
     </script>
 </body>
 </html>
-
-
-
