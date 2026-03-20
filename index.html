@@ -1084,7 +1084,7 @@ Responde de forma concisa y amigable usando Markdown.`
 
                 allUserTransactions.forEach(t => {
                     if (t.type !== 'expense' || excludeCategories.includes(t.category)) return;
-                    averages[t.category] = (averages[t.category] || 0) + (t.amount / (totalMonths+1);
+                    averages[t.category] = (averages[t.category] || 0) + (t.amount / (totalMonths);
                 });
 
                 last30Txs.forEach(t => {
