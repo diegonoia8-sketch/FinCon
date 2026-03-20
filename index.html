@@ -64,6 +64,25 @@
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
+        /* Estilos para forzar el centrado de las tablas de la IA */
+        #pdfAiAnalysis table {
+            margin: 0 auto 1.5rem auto !important;
+            width: 80% !important;
+            border-collapse: collapse !important;
+            background-color: transparent !important;
+        }
+        #pdfAiAnalysis th, #pdfAiAnalysis td {
+            text-align: center !important;
+            padding: 10px !important;
+            border: none !important;
+            border-bottom: 1px solid #e5e7eb !important;
+        }
+        #pdfAiAnalysis th {
+            border-bottom: 2px solid #9ca3af !important;
+            font-weight: 600 !important;
+            color: #374151 !important;
+        }
+
         /* ESTILOS PARA LA IMPRESIÓN/GENERACIÓN DE PDF NATIVA */
         @media print {
             body { 
@@ -71,11 +90,10 @@
                 margin: 0;
                 padding: 0;
             }
-            #mainApp, #authScreen, #openChatBtn, #chatWidget, #pdfLoadingOverlay {
+            #mainApp, #authScreen, #openChatBtn, #chatWidget, #pdfLoadingOverlay, #exlabesaModal, #fuelModal {
                 display: none !important;
             }
-            #pdfContainer {
-                display: block !important;
+            #pdfContainer, #exlabesaPdfContainer, #fuelPdfContainer {
                 position: static !important;
                 width: 100% !important;
                 max-width: 100% !important;
@@ -88,6 +106,9 @@
             .avoid-break {
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
+            }
+            .page-break-before {
+                page-break-before: always !important;
             }
         }
     </style>
@@ -105,8 +126,48 @@
 
     <div id="pdfLoadingOverlay" class="hidden fixed inset-0 bg-white z-[9999] flex-col items-center justify-center">
         <div class="spinner-indigo mb-4"></div>
-        <h2 class="text-xl font-bold text-gray-800">Generando reporte con IA...</h2>
+        <h2 class="text-xl font-bold text-gray-800">Generando reporte...</h2>
         <p class="text-gray-500 text-sm mt-2">Se abrirá el diálogo para guardar como PDF en breve.</p>
+    </div>
+
+    <!-- MODAL REPORTE EXLABESA -->
+    <div id="exlabesaModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center">
+        <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+            <h2 class="text-xl font-bold mb-4 text-gray-800">Reporte Dietas EXLABESA</h2>
+            <p class="text-sm text-gray-600 mb-4">Selecciona el rango de fechas para generar el reporte con tickets adjuntos.</p>
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700">Fecha Inicio</label>
+                <input type="date" id="exlabesaStartDate" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+            </div>
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700">Fecha Fin</label>
+                <input type="date" id="exlabesaEndDate" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+            </div>
+            <div class="flex justify-end gap-2">
+                <button id="closeExlabesaModalBtn" class="bg-gray-300 text-gray-800 px-4 py-2 rounded font-semibold hover:bg-gray-400 transition">Cancelar</button>
+                <button id="generateExlabesaBtn" class="bg-green-600 text-white px-4 py-2 rounded font-semibold hover:bg-green-700 transition">Generar PDF</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL REPORTE COMBUSTIBLE -->
+    <div id="fuelModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center">
+        <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+            <h2 class="text-xl font-bold mb-4 text-gray-800">Reporte Consumo Combustible</h2>
+            <p class="text-sm text-gray-600 mb-4">Selecciona el rango de fechas a comparar contra tu media histórica.</p>
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700">Fecha Inicio</label>
+                <input type="date" id="fuelStartDate" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+            </div>
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700">Fecha Fin</label>
+                <input type="date" id="fuelEndDate" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+            </div>
+            <div class="flex justify-end gap-2">
+                <button id="closeFuelModalBtn" class="bg-gray-300 text-gray-800 px-4 py-2 rounded font-semibold hover:bg-gray-400 transition">Cancelar</button>
+                <button id="generateFuelBtn" class="bg-yellow-600 text-white px-4 py-2 rounded font-semibold hover:bg-yellow-700 transition">Generar PDF</button>
+            </div>
+        </div>
     </div>
 
     <div id="mainApp" class="hidden flex flex-col flex-grow z-10 relative">
@@ -115,7 +176,7 @@
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
   <path stroke-linecap="round" stroke-linejoin="round" d="M14.25 7.756a4.5 4.5 0 1 0 0 8.488M7.5 10.5h5.25m-5.25 3h5.25M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
 </svg>
-                <span class="text-xl font-bold text-gray-800">Finanzas Personales</span>
+                <span class="text-xl font-bold text-gray-800 ml-2">Finanzas Personales</span>
             </div>
             <div class="flex items-center">
                 <span id="userGreeting" class="text-gray-600 text-sm hidden md:block mr-4"></span>
@@ -130,12 +191,23 @@
         <main class="flex-grow p-4 md:p-6 pb-20 overflow-y-auto">
     
             <div id="dashboard" class="tab-content grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                <div class="col-span-1 md:col-span-2 lg:col-span-3 flex justify-end">
+                <div class="col-span-1 md:col-span-2 lg:col-span-3 flex justify-end gap-3 flex-wrap">
+                    <!-- BOTÓN COMBUSTIBLE -->
+                    <button id="openFuelModalBtn" class="flex items-center bg-yellow-600 text-white text-sm font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-yellow-700 transition duration-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v8l9-11h-7z" /></svg>
+                        <span>Reporte Combustible</span>
+                    </button>
+                    <!-- BOTÓN EXLABESA -->
+                    <button id="openExlabesaModalBtn" class="flex items-center bg-green-600 text-white text-sm font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-green-700 transition duration-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                        <span>Reporte Dietas (EXLABESA)</span>
+                    </button>
+                    <!-- BOTÓN PDF IA -->
                     <button id="generatePdfBtn" class="flex items-center bg-blue-600 text-white text-sm font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 transition duration-300">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
-                        <span id="generatePdfText">Resumen IA (Últimos 30 Días) en PDF</span>
+                        <span id="generatePdfText">Resumen IA (30 Días)</span>
                     </button>
                 </div>
 
@@ -247,8 +319,9 @@
                     <div id="incomeExpenseForm" class="bg-white p-6 rounded-lg shadow-sm hidden">
                         <div class="flex justify-between items-center mb-4">
                             <h3 id="formTitle" class="text-lg font-semibold text-gray-800"></h3>
-                            <div>
-                                <input type="file" id="receiptInput" accept="image/*" capture="environment" class="hidden">
+                            <div class="flex items-center">
+                                <img id="receiptPreview" title="Clic para eliminar" class="hidden h-10 w-10 object-cover rounded mr-3 border border-gray-300 cursor-pointer hover:opacity-75">
+                                <input type="file" id="receiptInput" accept="image/*" class="hidden">
                                 <button type="button" id="scanReceiptBtn" class="flex items-center bg-purple-600 text-white text-sm font-semibold py-2 px-4 rounded shadow-md hover:bg-purple-700 transition duration-300">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
@@ -548,6 +621,7 @@
         </nav>
     </div>
 
+    <!-- CONTENEDOR PDF 30 DÍAS -->
     <div id="pdfContainer" style="display: none; position: absolute; left: -9999px; width: 1000px; padding: 40px; background: white;">
         <h1 class="text-3xl font-bold text-gray-800 mb-2 border-b-2 border-gray-800 pb-2">Resumen Financiero (Últimos 30 Días)</h1>
         <p class="text-gray-600 mb-8 font-medium text-base" id="pdfDateRange"></p>
@@ -576,9 +650,69 @@
 
         <div class="p-2 bg-white avoid-break mt-6">
             <h3 class="text-2xl font-bold text-gray-800 mb-6 avoid-break">Análisis e Insights (IA)</h3>
-            <div id="pdfAiAnalysis" class="prose max-w-none text-gray-800 text-base leading-relaxed">
-                </div>
+            <div id="pdfAiAnalysis" class="prose max-w-none text-gray-800 text-base leading-relaxed"></div>
         </div>
+    </div>
+
+    <!-- CONTENEDOR PDF EXLABESA -->
+    <div id="exlabesaPdfContainer" style="display: none; position: absolute; left: -9999px; width: 1000px; padding: 40px; background: white;">
+        <h1 class="text-3xl font-bold text-gray-800 mb-2 border-b-2 border-gray-800 pb-2">Reporte de Dietas - EXLABESA</h1>
+        <p class="text-gray-600 mb-8 font-medium text-base" id="exlabesaDateRange"></p>
+
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px; text-align: left; font-size: 16px;">
+            <thead>
+                <tr style="border-bottom: 2px solid #ddd;">
+                    <th style="padding: 10px;">Fecha</th>
+                    <th style="padding: 10px;">Concepto</th>
+                    <th style="padding: 10px; text-align: right;">Cantidad</th>
+                </tr>
+            </thead>
+            <tbody id="exlabesaTableBody"></tbody>
+            <tfoot>
+                <tr style="border-top: 2px solid #333; font-weight: bold;">
+                    <td style="padding: 10px;" colspan="2">TOTAL</td>
+                    <td style="padding: 10px; text-align: right;" id="exlabesaTotalAmount"></td>
+                </tr>
+            </tfoot>
+        </table>
+
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 page-break-before">Anexos: Tickets Escaneados</h2>
+        <div id="exlabesaTicketsContainer" class="grid grid-cols-2 gap-6"></div>
+    </div>
+
+    <!-- CONTENEDOR PDF COMBUSTIBLE -->
+    <div id="fuelPdfContainer" style="display: none; position: absolute; left: -9999px; width: 1000px; padding: 40px; background: white;">
+        <h1 class="text-3xl font-bold text-gray-800 mb-2 border-b-2 border-gray-800 pb-2">Reporte de Consumo de Combustible</h1>
+        <p class="text-gray-600 mb-8 font-medium text-base" id="fuelDateRange"></p>
+
+        <div class="grid grid-cols-2 gap-8 mb-8 avoid-break">
+            <div class="p-6 bg-gray-50 border border-gray-200 rounded-lg">
+                <h3 class="text-xl font-bold text-center mb-4 text-indigo-700 border-b border-indigo-200 pb-2">Media Histórica Total</h3>
+                <div id="fuelHistoricalStats" class="space-y-3 text-lg">
+                    <!-- Rellenado por JS -->
+                </div>
+            </div>
+            <div class="p-6 bg-gray-50 border border-gray-200 rounded-lg">
+                <h3 class="text-xl font-bold text-center mb-4 text-yellow-700 border-b border-yellow-200 pb-2">Período Seleccionado</h3>
+                <div id="fuelSelectedStats" class="space-y-3 text-lg">
+                    <!-- Rellenado por JS -->
+                </div>
+            </div>
+        </div>
+
+        <h2 class="text-2xl font-bold text-gray-800 mb-4 avoid-break">Desglose del Período Seleccionado</h2>
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px; text-align: left; font-size: 14px;">
+            <thead>
+                <tr style="border-bottom: 2px solid #ddd; background-color: #f9fafb;">
+                    <th style="padding: 10px;">Fecha</th>
+                    <th style="padding: 10px;">Descripción (Original)</th>
+                    <th style="padding: 10px; text-align: right;">Litros Extraídos</th>
+                    <th style="padding: 10px; text-align: right;">Kilómetros Extraídos</th>
+                    <th style="padding: 10px; text-align: right;">Coste (€)</th>
+                </tr>
+            </thead>
+            <tbody id="fuelTableBody"></tbody>
+        </table>
     </div>
 
     <script type="module">
@@ -612,8 +746,8 @@
         let unsubscribeTransactions;
         let unsubscribeSettings;
         let allUserTransactions = [];
+        let currentScannedImage = null; 
         
-        // Variables globales para pasar a la IA
         let userCategories = [];
         let userAccounts = [];
         let userAccountingBooks = [];
@@ -631,11 +765,7 @@
 
         signInBtn.addEventListener('click', async () => {
             const provider = new GoogleAuthProvider();
-            try {
-                await signInWithPopup(auth, provider);
-            } catch (error) {
-                console.error("Error signing in with Google:", error);
-            }
+            try { await signInWithPopup(auth, provider); } catch (error) { console.error(error); }
         });
 
         signOutBtn.addEventListener('click', async () => {
@@ -671,6 +801,11 @@
             document.getElementById('date').valueAsDate = new Date();
             transactionIdField.value = '';
             submitBtn.textContent = 'Registrar Transacción';
+            
+            currentScannedImage = null;
+            const preview = document.getElementById('receiptPreview');
+            preview.src = '';
+            preview.classList.add('hidden');
         };
         
         const saveTransaction = async (e) => {
@@ -687,6 +822,10 @@
                 userId: userId,
                 createdAt: serverTimestamp()
             };
+            
+            if (currentScannedImage) {
+                data.receiptImage = currentScannedImage;
+            }
             
             try {
                 const transactionId = transactionIdField.value;
@@ -742,7 +881,7 @@
             }
         };
 
-        /* --------------- SECCIÓN IA (GEMINI) --------------- */
+        /* --------------- SECCIÓN IA (GEMINI) Y TICKETS --------------- */
         
         const apiKeyInput = document.getElementById('geminiApiKey');
         const saveApiKeyBtn = document.getElementById('saveApiKeyBtn');
@@ -758,7 +897,6 @@
             }
         });
 
-        // Llamada base para Escáner y PDF
         async function callGemini(systemPrompt, userPrompt, base64Image = null) {
             const apiKey = localStorage.getItem('geminiApiKey');
             if (!apiKey) throw new Error("Falta la API Key de Gemini. Configúrala en Ajustes.");
@@ -781,12 +919,42 @@
             return data.candidates[0].content.parts[0].text;
         }
 
-        // 1. ESCÁNER DE TICKETS
+        const compressImage = (base64Str, maxWidth = 1000, quality = 0.7) => {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.src = base64Str;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+                    if (width > maxWidth) {
+                        height = Math.round(height * maxWidth / width);
+                        width = maxWidth;
+                    }
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    resolve(canvas.toDataURL('image/jpeg', quality));
+                };
+            });
+        };
+
         const receiptInput = document.getElementById('receiptInput');
         const scanReceiptBtn = document.getElementById('scanReceiptBtn');
         const scanReceiptText = document.getElementById('scanReceiptText');
+        const receiptPreview = document.getElementById('receiptPreview');
 
         scanReceiptBtn.addEventListener('click', () => receiptInput.click());
+
+        receiptPreview.addEventListener('click', () => {
+            if (confirm("¿Deseas quitar la imagen adjunta a esta transacción?")) {
+                currentScannedImage = null;
+                receiptPreview.src = '';
+                receiptPreview.classList.add('hidden');
+                receiptInput.value = '';
+            }
+        });
 
         receiptInput.addEventListener('change', async (e) => {
             const file = e.target.files[0];
@@ -795,26 +963,36 @@
             const reader = new FileReader();
             reader.readAsDataURL(file);
             reader.onload = async () => {
-                const base64Image = reader.result;
+                const base64ImageRaw = reader.result;
                 scanReceiptBtn.classList.add('opacity-50', 'cursor-wait');
-                scanReceiptText.textContent = "Analizando...";
+                scanReceiptText.textContent = "Procesando...";
                 
                 try {
-                    const prompt = `Analiza este ticket de compra. Extrae el nombre del comercio (como una descripción breve), el total gastado (un número), y la fecha de compra en formato YYYY-MM-DD. 
-                    Devuelve EXCLUSIVAMENTE un objeto JSON válido con esta estructura: {"description": "Nombre", "amount": 10.50, "date": "YYYY-MM-DD"}. No incluyas markdown ni texto adicional.`;
+                    const compressedBase64 = await compressImage(base64ImageRaw, 1000, 0.7);
                     
-                    let result = await callGemini("Eres un bot extractor de recibos. Responde solo con JSON.", prompt, base64Image);
-                    result = result.replace(/```json/g, '').replace(/```/g, '').trim();
-                    const jsonResult = JSON.parse(result);
+                    currentScannedImage = compressedBase64;
+                    receiptPreview.src = compressedBase64;
+                    receiptPreview.classList.remove('hidden');
 
-                    if(jsonResult.description) document.getElementById('description').value = jsonResult.description;
-                    if(jsonResult.amount) document.getElementById('amount').value = jsonResult.amount;
-                    if(jsonResult.date) document.getElementById('date').value = jsonResult.date;
-                    
-                    alert("¡Ticket escaneado correctamente!");
+                    if (localStorage.getItem('geminiApiKey')) {
+                        const prompt = `Analiza este ticket de compra. Extrae el nombre del comercio (como una descripción breve), el total gastado (un número), y la fecha de compra en formato YYYY-MM-DD. 
+                        Devuelve EXCLUSIVAMENTE un objeto JSON válido con esta estructura: {"description": "Nombre", "amount": 10.50, "date": "YYYY-MM-DD"}. No incluyas markdown ni texto adicional.`;
+                        
+                        let result = await callGemini("Eres un bot extractor de recibos. Responde solo con JSON.", prompt, compressedBase64);
+                        result = result.replace(/```json/g, '').replace(/```/g, '').trim();
+                        const jsonResult = JSON.parse(result);
+
+                        if(jsonResult.description) document.getElementById('description').value = jsonResult.description;
+                        if(jsonResult.amount) document.getElementById('amount').value = jsonResult.amount;
+                        if(jsonResult.date) document.getElementById('date').value = jsonResult.date;
+                        
+                        alert("¡Ticket adjuntado y datos extraídos correctamente!");
+                    } else {
+                        alert("Ticket adjuntado correctamente (Rellena los datos a mano si no tienes API Key).");
+                    }
                 } catch (error) {
                     console.error(error);
-                    alert("Error al leer el ticket: " + error.message);
+                    alert("Ticket adjuntado. No se pudo auto-rellenar con IA: " + error.message);
                 } finally {
                     scanReceiptBtn.classList.remove('opacity-50', 'cursor-wait');
                     scanReceiptText.textContent = "Escanear Ticket (IA)";
@@ -833,7 +1011,6 @@
         const chatSendIcon = document.getElementById('chatSendIcon');
         const chatLoadingIcon = document.getElementById('chatLoadingIcon');
 
-        // Historial API puro requerido por Gemini
         let apiHistory = []; 
 
         openChatBtn.addEventListener('click', () => chatWidget.classList.remove('hidden-chat'));
@@ -847,34 +1024,33 @@
             chatMessages.scrollTop = chatMessages.scrollHeight;
         };
 
-        // Definición de las herramientas disponibles para Gemini
         const agentTools = [{
             functionDeclarations: [
                 {
                     name: "query_database",
-                    description: "Busca, filtra y suma transacciones del usuario. Devuelve el total exacto. Úsala SIEMPRE que te pregunten sumas, totales, en qué se gastó, o cuántas transacciones hay de algo.",
+                    description: "Busca, filtra y suma transacciones del usuario.",
                     parameters: {
                         type: "OBJECT",
                         properties: {
-                            type: { type: "STRING", enum: ["income", "expense", "all"], description: "Filtrar por ingreso o gasto. Usa 'all' si no importa." },
-                            category: { type: "STRING", description: "Filtrar por categoría (ej. Comida, Ocio, Transporte). Deja vacío para buscar en todas." },
-                            searchTerm: { type: "STRING", description: "Palabra clave a buscar en la descripción (ej. Amazon, Mercadona, Restaurante)." },
-                            startDate: { type: "STRING", description: "Fecha de inicio (YYYY-MM-DD)." },
-                            endDate: { type: "STRING", description: "Fecha de fin (YYYY-MM-DD)." }
+                            type: { type: "STRING", enum: ["income", "expense", "all"] },
+                            category: { type: "STRING" },
+                            searchTerm: { type: "STRING" },
+                            startDate: { type: "STRING" },
+                            endDate: { type: "STRING" }
                         }
                     }
                 },
                 {
                     name: "register_transaction",
-                    description: "Registra, anota, guarda o añade un nuevo gasto o ingreso directamente en la base de datos.",
+                    description: "Registra un nuevo gasto o ingreso.",
                     parameters: {
                         type: "OBJECT",
                         properties: {
-                            type: { type: "STRING", enum: ["income", "expense"], description: "Indica si es gasto o ingreso." },
-                            amount: { type: "NUMBER", description: "La cantidad numérica (ej. 15.50)." },
-                            category: { type: "STRING", description: "Categoría de la transacción. IMPORTANTE: Ajustate a las que tiene el usuario." },
-                            account: { type: "STRING", description: "Cuenta afectada. Por defecto usa Efectivo o la primera que tenga el usuario." },
-                            description: { type: "STRING", description: "Concepto breve de la compra o ingreso." }
+                            type: { type: "STRING", enum: ["income", "expense"] },
+                            amount: { type: "NUMBER" },
+                            category: { type: "STRING" },
+                            account: { type: "STRING" },
+                            description: { type: "STRING" }
                         },
                         required: ["type", "amount", "category", "account", "description"]
                     }
@@ -899,7 +1075,6 @@
                 chatSendIcon.classList.remove('hidden'); chatLoadingIcon.classList.add('hidden'); return;
             }
 
-            // Añadimos la pregunta del usuario al historial
             apiHistory.push({ role: "user", parts: [{ text }] });
 
             try {
@@ -911,11 +1086,10 @@
                         systemInstruction: {
                             parts: [{
                                 text: `Eres el asistente financiero inteligente del usuario. 
-NO adivines ni calcules sumas por ti mismo. SIEMPRE utiliza la herramienta 'query_database' para obtener los datos exactos que el usuario pide, sin importar la fecha.
-Si te piden registrar un gasto, usa 'register_transaction'.
+NO adivines ni calcules sumas por ti mismo. SIEMPRE utiliza la herramienta 'query_database' para obtener los datos.
 Categorías disponibles: ${userCategories.join(', ')}.
 Cuentas disponibles: ${userAccounts.join(', ')}.
-Responde de forma concisa y amigable usando Markdown.`
+Responde de forma concisa usando Markdown.`
                             }]
                         },
                         contents: apiHistory,
@@ -923,109 +1097,49 @@ Responde de forma concisa y amigable usando Markdown.`
                     };
 
                     const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent?key=${apiKey}`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
+                        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
                     });
 
-                    if(!res.ok) {
-                        const err = await res.json();
-                        throw new Error(err.error?.message || "Error al conectar con la IA");
-                    }
-
+                    if(!res.ok) throw new Error("Error al conectar con la IA");
                     const data = await res.json();
                     const part = data.candidates[0].content.parts[0];
 
-                    // Si Gemini decide que necesita ejecutar una función (Filtrar datos o Guardar datos)
                     if(part.functionCall) {
                         const call = part.functionCall;
                         const args = call.args || {};
-                        
-                        // Registramos en el historial que el modelo solicitó una acción
                         apiHistory.push({ role: "model", parts: [part] });
-
                         let toolResult = {};
 
-                        // 1. HERRAMIENTA DE FILTRADO Y SUMA (Matemática perfecta vía JavaScript)
                         if(call.name === 'query_database') {
                             let filtered = allUserTransactions;
-                            
-                            if(args.type && args.type !== 'all') {
-                                filtered = filtered.filter(t => t.type === args.type);
-                            }
-                            if(args.category) {
-                                filtered = filtered.filter(t => t.category && t.category.toLowerCase().includes(args.category.toLowerCase()));
-                            }
-                            if(args.searchTerm) {
-                                filtered = filtered.filter(t => t.description && t.description.toLowerCase().includes(args.searchTerm.toLowerCase()));
-                            }
-                            if(args.startDate) {
-                                filtered = filtered.filter(t => t.date && t.date.toDate() >= new Date(args.startDate));
-                            }
-                            if(args.endDate) {
-                                const ed = new Date(args.endDate);
-                                ed.setHours(23, 59, 59, 999);
-                                filtered = filtered.filter(t => t.date && t.date.toDate() <= ed);
-                            }
+                            if(args.type && args.type !== 'all') filtered = filtered.filter(t => t.type === args.type);
+                            if(args.category) filtered = filtered.filter(t => t.category && t.category.toLowerCase().includes(args.category.toLowerCase()));
+                            if(args.searchTerm) filtered = filtered.filter(t => t.description && t.description.toLowerCase().includes(args.searchTerm.toLowerCase()));
+                            if(args.startDate) filtered = filtered.filter(t => t.date && t.date.toDate() >= new Date(args.startDate));
+                            if(args.endDate) { const ed = new Date(args.endDate); ed.setHours(23, 59, 59, 999); filtered = filtered.filter(t => t.date && t.date.toDate() <= ed); }
 
-                            const totalAmount = filtered.reduce((sum, t) => sum + t.amount, 0);
-                            
                             toolResult = {
-                                total_amount_eur: parseFloat(totalAmount.toFixed(2)),
+                                total_amount_eur: parseFloat(filtered.reduce((sum, t) => sum + t.amount, 0).toFixed(2)),
                                 transactions_count: filtered.length,
-                                sample_results: filtered.slice(0, 15).map(t => ({
-                                    date: t.date.toDate().toISOString().split('T')[0],
-                                    amount: t.amount,
-                                    description: t.description,
-                                    category: t.category
-                                }))
+                                sample_results: filtered.slice(0, 15).map(t => ({ date: t.date.toDate().toISOString().split('T')[0], amount: t.amount, description: t.description, category: t.category }))
                             };
                         } 
-                        // 2. HERRAMIENTA DE REGISTRO
                         else if (call.name === 'register_transaction') {
-                            const txData = {
-                                type: args.type,
-                                description: args.description,
-                                amount: parseFloat(args.amount),
-                                category: args.category,
-                                date: new Date(),
-                                account: args.account || userAccounts[0] || 'Efectivo',
-                                accountingBook: 'Principal',
-                                userId: userId,
-                                createdAt: serverTimestamp()
-                            };
-                            try {
-                                await addDoc(collection(db, dbCollections.transactions), txData);
-                                toolResult = { status: "success", message: "Transacción guardada correctamente en Firebase." };
-                            } catch (e) {
-                                toolResult = { status: "error", error_message: e.message };
-                            }
+                            const txData = { type: args.type, description: args.description, amount: parseFloat(args.amount), category: args.category, date: new Date(), account: args.account || userAccounts[0] || 'Efectivo', accountingBook: 'Principal', userId: userId, createdAt: serverTimestamp() };
+                            try { await addDoc(collection(db, dbCollections.transactions), txData); toolResult = { status: "success", message: "Transacción guardada." }; } 
+                            catch (e) { toolResult = { status: "error", error_message: e.message }; }
                         }
 
-                        // Enviamos el resultado de vuelta a la IA para que escriba la respuesta final
-                        apiHistory.push({
-                            role: "user",
-                            parts: [{
-                                functionResponse: {
-                                    name: call.name,
-                                    response: { name: call.name, content: toolResult }
-                                }
-                            }]
-                        });
-                        // El bucle continuará para llamar a Gemini con los datos que acabamos de enviarle
+                        apiHistory.push({ role: "user", parts: [{ functionResponse: { name: call.name, response: { name: call.name, content: toolResult } } }] });
                     } 
-                    // Si Gemini responde directamente con texto (Respuesta final)
                     else {
                         finalResponseText = part.text;
                         apiHistory.push({ role: "model", parts: [{ text: finalResponseText }] });
-                        keepGoing = false; // Rompemos el bucle
+                        keepGoing = false;
                     }
                 }
-
                 addMessageToChat(finalResponseText, false);
-
             } catch (error) {
-                console.error("Agent Error:", error);
                 addMessageToChat(`Error: ${error.message}`, false);
             } finally {
                 chatSendIcon.classList.remove('hidden');
@@ -1033,7 +1147,305 @@ Responde de forma concisa y amigable usando Markdown.`
             }
         });
 
-        // 3. GENERACIÓN DE PDF NATIVA (IMPRIMIR A PDF)
+        // 3. GENERACIÓN DE REPORTE EXLABESA
+        document.getElementById('openExlabesaModalBtn').addEventListener('click', () => {
+            document.getElementById('exlabesaModal').classList.remove('hidden');
+        });
+        
+        document.getElementById('closeExlabesaModalBtn').addEventListener('click', () => {
+            document.getElementById('exlabesaModal').classList.add('hidden');
+        });
+
+        document.getElementById('generateExlabesaBtn').addEventListener('click', () => {
+            const startDateStr = document.getElementById('exlabesaStartDate').value;
+            const endDateStr = document.getElementById('exlabesaEndDate').value;
+
+            if (!startDateStr || !endDateStr) {
+                alert("Por favor, selecciona una fecha de inicio y una fecha de fin.");
+                return;
+            }
+
+            const start = new Date(startDateStr); start.setHours(0,0,0,0);
+            const end = new Date(endDateStr); end.setHours(23,59,59,999);
+
+            const exlabesaTxs = allUserTransactions.filter(t => 
+                t.category === 'EXLABESA' && 
+                t.date && t.date.toDate() >= start && 
+                t.date.toDate() <= end
+            ).sort((a,b) => a.date.seconds - b.date.seconds);
+
+            if (exlabesaTxs.length === 0) {
+                alert("No hay transacciones de la categoría EXLABESA en este rango de fechas.");
+                return;
+            }
+
+            const tbody = document.getElementById('exlabesaTableBody');
+            tbody.innerHTML = '';
+            let total = 0;
+            exlabesaTxs.forEach(t => {
+                total += t.amount;
+                tbody.innerHTML += `
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 10px;">${t.date.toDate().toLocaleDateString('es-ES')}</td>
+                        <td style="padding: 10px;">${t.description}</td>
+                        <td style="padding: 10px; text-align: right;">${t.amount.toFixed(2)} €</td>
+                    </tr>
+                `;
+            });
+            document.getElementById('exlabesaTotalAmount').innerText = total.toFixed(2) + ' €';
+            document.getElementById('exlabesaDateRange').innerText = `Período: ${start.toLocaleDateString('es-ES')} a ${end.toLocaleDateString('es-ES')}`;
+
+            const ticketsContainer = document.getElementById('exlabesaTicketsContainer');
+            ticketsContainer.innerHTML = '';
+            let hasTickets = false;
+            
+            exlabesaTxs.forEach(t => {
+                if (t.receiptImage) {
+                    hasTickets = true;
+                    ticketsContainer.innerHTML += `
+                        <div class="mb-6 p-4 rounded border border-gray-300 avoid-break">
+                            <p class="font-bold text-sm mb-3 text-gray-800 border-b pb-2">
+                                ${t.date.toDate().toLocaleDateString('es-ES')} - ${t.description} <span class="text-indigo-600">(${t.amount.toFixed(2)} €)</span>
+                            </p>
+                            <img src="${t.receiptImage}" style="max-width: 100%; max-height: 400px; display: block; margin: 0 auto;" />
+                        </div>
+                    `;
+                }
+            });
+            
+            if (!hasTickets) {
+                ticketsContainer.innerHTML = '<p class="text-gray-500 italic col-span-2">No hay tickets guardados para las transacciones de este período.</p>';
+            }
+
+            document.getElementById('exlabesaModal').classList.add('hidden');
+            
+            document.getElementById('pdfContainer').style.display = 'none';
+            document.getElementById('fuelPdfContainer').style.display = 'none';
+            document.getElementById('exlabesaPdfContainer').style.display = 'block';
+
+            setTimeout(() => {
+                window.print();
+                
+                document.getElementById('exlabesaPdfContainer').style.display = 'none';
+
+                setTimeout(async () => {
+                    if (hasTickets && confirm("¿Deseas eliminar las imágenes de los tickets utilizados en este informe para ahorrar espacio en la base de datos?\n(Los importes y conceptos financieros NO se borrarán).")) {
+                        try {
+                            for (let t of exlabesaTxs) {
+                                if (t.receiptImage) {
+                                    await updateDoc(doc(db, dbCollections.transactions, t.id), {
+                                        receiptImage: null
+                                    });
+                                }
+                            }
+                            alert("Imágenes eliminadas correctamente de la base de datos.");
+                        } catch (err) {
+                            console.error("Error al borrar tickets:", err);
+                        }
+                    }
+                }, 500); 
+
+            }, 500);
+        });
+
+        // 4. GENERACIÓN DE REPORTE COMBUSTIBLE
+        document.getElementById('openFuelModalBtn').addEventListener('click', () => {
+            document.getElementById('fuelModal').classList.remove('hidden');
+        });
+        
+        document.getElementById('closeFuelModalBtn').addEventListener('click', () => {
+            document.getElementById('fuelModal').classList.add('hidden');
+        });
+
+        const calculateFuelConsumption = (transactionsArray) => {
+            const extracted = transactionsArray.map(t => {
+                const desc = t.description || "";
+                const lMatch = desc.match(/(?:^|\s)(\d+(?:[.,]\d+)?)\s*l\b/i);
+                const kmMatch = desc.match(/(?:^|\s)(\d+(?:[.,]\d+)?)\s*km(?:s)?\b/i);
+                if (lMatch && kmMatch) {
+                    return {
+                        date: t.date.toDate(),
+                        originalDesc: desc,
+                        amount: t.amount,
+                        liters: parseFloat(lMatch[1].replace(',', '.')),
+                        kms: parseFloat(kmMatch[1].replace(',', '.'))
+                    };
+                }
+                return null;
+            }).filter(x => x !== null);
+
+            extracted.sort((a, b) => a.date - b.date);
+
+            if (extracted.length < 2) return { valid: false, data: extracted };
+
+            const firstKm = extracted[0].kms;
+            const lastKm = extracted[extracted.length - 1].kms;
+            const diffKm = lastKm - firstKm;
+
+            if (diffKm <= 0) return { valid: false, data: extracted };
+
+            let sumL = 0;
+            let sumEur = 0;
+            
+            for (let i = 1; i < extracted.length; i++) {
+                sumL += extracted[i].liters;
+                sumEur += extracted[i].amount;
+            }
+
+            return {
+                valid: true,
+                lPer100: (sumL / diffKm) * 100,
+                eurPer100: (sumEur / diffKm) * 100,
+                diffKm: diffKm,
+                sumL: sumL,
+                sumEur: sumEur,
+                data: extracted
+            };
+        };
+
+        document.getElementById('generateFuelBtn').addEventListener('click', () => {
+            const startDateStr = document.getElementById('fuelStartDate').value;
+            const endDateStr = document.getElementById('fuelEndDate').value;
+
+            if (!startDateStr || !endDateStr) {
+                alert("Por favor, selecciona una fecha de inicio y una fecha de fin.");
+                return;
+            }
+
+            const start = new Date(startDateStr); start.setHours(0,0,0,0);
+            const end = new Date(endDateStr); end.setHours(23,59,59,999);
+
+            const allFuelTxs = allUserTransactions.filter(t => t.category === 'Combustible' && t.date);
+            const selectedFuelTxs = allFuelTxs.filter(t => t.date.toDate() >= start && t.date.toDate() <= end);
+
+            const historicalCalc = calculateFuelConsumption(allFuelTxs);
+            const selectedCalc = calculateFuelConsumption(selectedFuelTxs);
+
+            if (!selectedCalc.valid && selectedCalc.data.length === 0) {
+                alert("No hay registros de combustible con formato válido (ej: '50 l 120000 km') en el período seleccionado.");
+                return;
+            }
+
+            const histDiv = document.getElementById('fuelHistoricalStats');
+            if (historicalCalc.valid) {
+                histDiv.innerHTML = `
+                    <p><span class="font-semibold text-gray-600">Consumo Litros:</span> <span class="font-bold text-gray-900">${historicalCalc.lPer100.toFixed(2)} L/100km</span></p>
+                    <p><span class="font-semibold text-gray-600">Consumo Coste:</span> <span class="font-bold text-gray-900">${historicalCalc.eurPer100.toFixed(2)} €/100km</span></p>
+                    <p class="text-sm mt-4 text-gray-500">Basado en ${historicalCalc.diffKm.toFixed(0)} Kms (Sumados ${historicalCalc.sumL.toFixed(2)}L y ${historicalCalc.sumEur.toFixed(2)}€).</p>
+                `;
+            } else {
+                histDiv.innerHTML = `<p class="text-gray-500 italic">No hay suficientes datos históricos con formato válido para calcular la media.</p>`;
+            }
+
+            const selDiv = document.getElementById('fuelSelectedStats');
+            if (selectedCalc.valid) {
+                let colorL = historicalCalc.valid && selectedCalc.lPer100 > historicalCalc.lPer100 ? 'text-red-600' : 'text-green-600';
+                let colorE = historicalCalc.valid && selectedCalc.eurPer100 > historicalCalc.eurPer100 ? 'text-red-600' : 'text-green-600';
+                
+                selDiv.innerHTML = `
+                    <p><span class="font-semibold text-gray-600">Consumo Litros:</span> <span class="font-bold ${colorL}">${selectedCalc.lPer100.toFixed(2)} L/100km</span></p>
+                    <p><span class="font-semibold text-gray-600">Consumo Coste:</span> <span class="font-bold ${colorE}">${selectedCalc.eurPer100.toFixed(2)} €/100km</span></p>
+                    <p class="text-sm mt-4 text-gray-500">Basado en ${selectedCalc.diffKm.toFixed(0)} Kms (Sumados ${selectedCalc.sumL.toFixed(2)}L y ${selectedCalc.sumEur.toFixed(2)}€).</p>
+                `;
+            } else {
+                selDiv.innerHTML = `<p class="text-gray-500 italic">Se requieren al menos 2 repostajes en este periodo para calcular el consumo.</p>`;
+            }
+
+            const tbody = document.getElementById('fuelTableBody');
+            tbody.innerHTML = '';
+            
+            if (selectedCalc.data.length > 0) {
+                selectedCalc.data.forEach((t, index) => {
+                    const isFirst = index === 0;
+                    
+                    const litrosHtml = isFirst 
+                        ? `<span style="text-decoration: line-through; color: #9ca3af;" title="Obviado para el cálculo">${t.liters.toFixed(2)} L</span>` 
+                        : `${t.liters.toFixed(2)} L`;
+                        
+                    const eurosHtml = isFirst 
+                        ? `<span style="text-decoration: line-through; color: #9ca3af;" title="Obviado para el cálculo">${t.amount.toFixed(2)} €</span>` 
+                        : `${t.amount.toFixed(2)} €`;
+                        
+                    const kmHtml = isFirst 
+                        ? `<span style="font-weight: bold; color: #4338ca;">${t.kms.toFixed(0)} Km</span> <br><span style="font-size: 0.75rem; color: #6b7280;">(Km Inicial)</span>` 
+                        : `${t.kms.toFixed(0)} Km`;
+
+                    tbody.innerHTML += `
+                        <tr style="border-bottom: 1px solid #eee;">
+                            <td style="padding: 10px;">${t.date.toLocaleDateString('es-ES')}</td>
+                            <td style="padding: 10px;">
+                                ${t.originalDesc} 
+                                ${isFirst ? '<br><span style="font-size: 0.75rem; background: #fef3c7; color: #92400e; padding: 2px 6px; border-radius: 4px; border: 1px solid #fde68a;">Solo se usan los Km de este registro</span>' : ''}
+                            </td>
+                            <td style="padding: 10px; text-align: right;">${litrosHtml}</td>
+                            <td style="padding: 10px; text-align: right;">${kmHtml}</td>
+                            <td style="padding: 10px; text-align: right;">${eurosHtml}</td>
+                        </tr>
+                    `;
+                });
+            } else {
+                tbody.innerHTML = '<tr><td colspan="5" style="padding:10px; text-align:center;">No hay datos válidos en este rango.</td></tr>';
+            }
+
+            document.getElementById('fuelDateRange').innerText = `Período: ${start.toLocaleDateString('es-ES')} a ${end.toLocaleDateString('es-ES')}`;
+            document.getElementById('fuelModal').classList.add('hidden');
+
+            document.getElementById('pdfContainer').style.display = 'none';
+            document.getElementById('exlabesaPdfContainer').style.display = 'none';
+            document.getElementById('fuelPdfContainer').style.display = 'block';
+
+            setTimeout(() => {
+                window.print();
+                document.getElementById('fuelPdfContainer').style.display = 'none';
+            }, 500);
+
+        });
+
+        // PLUGIN GLOBAL PARA DIBUJAR ETIQUETAS BLANCAS Y VERTICALES EN LOS GRÁFICOS
+        const verticalWhiteLabelsPlugin = {
+            id: 'verticalWhiteLabels',
+            afterDatasetsDraw(chart) {
+                const { ctx } = chart;
+                chart.data.datasets.forEach((dataset, i) => {
+                    const meta = chart.getDatasetMeta(i);
+                    meta.data.forEach((element, index) => {
+                        const value = dataset.data[index];
+                        if (value > 0) {
+                            ctx.save();
+                            ctx.fillStyle = '#ffffff'; 
+                            ctx.font = 'bold 12px Arial';
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            
+                            let x, y;
+                            // Comprobar si es un gráfico de donut/circular o barras
+                            if (element.tooltipPosition) {
+                                const pos = element.tooltipPosition();
+                                x = pos.x;
+                                y = pos.y;
+                            } else {
+                                x = element.x;
+                                y = element.y + (element.base - element.y) / 2;
+                                // Si la barra es muy pequeña, no pintamos número para no salirse
+                                if ((element.base - element.y) < 25) {
+                                    ctx.restore();
+                                    return; 
+                                }
+                            }
+
+                            ctx.translate(x, y);
+                            ctx.rotate(-Math.PI / 2); // Rotación VERTICAL (-90 grados)
+                            
+                            let text = value >= 1000 ? (value/1000).toFixed(1) + 'k€' : value.toFixed(0) + '€';
+                            ctx.fillText(text, 0, 0);
+                            ctx.restore();
+                        }
+                    });
+                });
+            }
+        };
+
+        // 5. GENERACIÓN DE PDF NATIVA (30 DÍAS IA)
         const generatePdfBtn = document.getElementById('generatePdfBtn');
         const generatePdfText = document.getElementById('generatePdfText');
         const pdfLoadingOverlay = document.getElementById('pdfLoadingOverlay');
@@ -1049,24 +1461,21 @@ Responde de forma concisa y amigable usando Markdown.`
             }
 
             try {
-                // Bloquear botón y mostrar pantalla de carga
                 generatePdfBtn.disabled = true;
                 pdfLoadingOverlay.classList.remove('hidden');
                 pdfLoadingOverlay.classList.add('flex');
                 
-                // Mostrar contenedor fuera de la pantalla temporalmente para que ChartJS lo dibuje a tamaño real
-                pdfContainer.style.display = 'block';
+                document.getElementById('exlabesaPdfContainer').style.display = 'none';
+                document.getElementById('fuelPdfContainer').style.display = 'none';
+                document.getElementById('pdfContainer').style.display = 'block';
 
-                // Fechas
                 const now = new Date();
                 const thirtyDaysAgo = new Date();
                 thirtyDaysAgo.setDate(now.getDate() - 30);
 
                 let oldestDate = now;
                 allUserTransactions.forEach(t => {
-                    if (t.date && t.date.toDate() < oldestDate) {
-                        oldestDate = t.date.toDate();
-                    }
+                    if (t.date && t.date.toDate() < oldestDate) oldestDate = t.date.toDate();
                 });
                 
                 const diffTime = Math.abs(now - oldestDate);
@@ -1095,7 +1504,6 @@ Responde de forma concisa y amigable usando Markdown.`
                 const avgIncome = allUserTransactions.filter(t => t.type === 'income' && !excludeCategories.includes(t.category)).reduce((s,t) => s+t.amount, 0) / (totalMonths+1);
                 const avgExpense = allUserTransactions.filter(t => t.type === 'expense' && !excludeCategories.includes(t.category)).reduce((s,t) => s+t.amount, 0) / (totalMonths+1);
 
-                // --- CÁLCULOS JS DE TABLAS PARA EL PDF (SIN ALUCINACIONES IA) ---
                 const top5Expenses = last30Txs
                     .filter(t => t.type === 'expense' && !t.description.toUpperCase().includes('EXLABESA'))
                     .sort((a, b) => b.amount - a.amount)
@@ -1110,72 +1518,17 @@ Responde de forma concisa y amigable usando Markdown.`
                 const ahorro30d = (inc30 - exp30).toFixed(2);
                 const ahorroMedia = (avgIncome - avgExpense).toFixed(2);
 
-                /* --- CÁLCULO DE COMBUSTIBLE --- */
-                const extractFuelData = (t) => {
-                    const desc = t.description || "";
-                    const lMatch = desc.match(/(\d+(?:[.,]\d+)?)\s*l\b/i);
-                    const kmMatch = desc.match(/(\d+(?:[.,]\d+)?)\s*km(?:s)?\b/i);
-                    if (lMatch && kmMatch) {
-                        return { date: t.date.toDate(), amount: t.amount, liters: parseFloat(lMatch[1].replace(',', '.')), kms: parseFloat(kmMatch[1].replace(',', '.')) };
-                    }
-                    return null;
-                };
+                const prompt = `Actúas como un maquetador de reportes financieros. Utiliza EXACTAMENTE los datos que te proporciono. NO inventes cifras.
 
-                const calcConsumption = (txs) => {
-                    const validTxs = txs.map(extractFuelData).filter(x => x !== null);
-                    validTxs.sort((a, b) => a.date - b.date); 
-                    if (validTxs.length < 2) return null; 
+                Comparativa:
+                - Ingresos Últimos 30 días: ${inc30.toFixed(2)}€ (Media: ${avgIncome.toFixed(2)}€)
+                - Gastos Últimos 30 días: ${exp30.toFixed(2)}€ (Media: ${avgExpense.toFixed(2)}€)
+                - Ahorro 30 días: ${ahorro30d}€ (Media: ${ahorroMedia}€)
 
-                    const oldest = validTxs[0];
-                    const newest = validTxs[validTxs.length - 1];
-                    const diffKm = newest.kms - oldest.kms;
-                    
-                    if (diffKm <= 0) return null;
+                Top 3 Categorías Gasto (Últimos 30 días): ${JSON.stringify(top3Categories)}
+                Top 5 Gastos Grandes (Últimos 30 días): ${JSON.stringify(top5Expenses)}
 
-                    let sumL = 0, sumEur = 0;
-                    for (let i = 1; i < validTxs.length; i++) { sumL += validTxs[i].liters; sumEur += validTxs[i].amount; }
-
-                    return { lPer100: (sumL / diffKm) * 100, eurPer100: (sumEur / diffKm) * 100, diffKm: diffKm, sumL: sumL, sumEur: sumEur };
-                };
-
-                const historicalFuel = calcConsumption(allUserTransactions.filter(t => t.category === 'Combustible'));
-                const last30Fuel = calcConsumption(last30Txs.filter(t => t.category === 'Combustible'));
-
-                let fuelContext = "No hay datos suficientes con el formato correcto en las descripciones de 'Combustible' para calcular el consumo.";
-                if (historicalFuel || last30Fuel) {
-                    fuelContext = "";
-                    if (historicalFuel) fuelContext += `Histórico: ${historicalFuel.lPer100.toFixed(2)} L/100km y ${historicalFuel.eurPer100.toFixed(2)} €/100km (Suma: ${historicalFuel.sumL.toFixed(2)}L, ${historicalFuel.sumEur.toFixed(2)}€, en ${historicalFuel.diffKm} Kms).\n`;
-                    if (last30Fuel) fuelContext += `Mes Actual: ${last30Fuel.lPer100.toFixed(2)} L/100km y ${last30Fuel.eurPer100.toFixed(2)} €/100km (Suma: ${last30Fuel.sumL.toFixed(2)}L, ${last30Fuel.sumEur.toFixed(2)}€, en ${last30Fuel.diffKm} Kms).\n`;
-                }
-                /* ------------------------------ */
-
-                const prompt = `Actúas como un maquetador de reportes financieros. NO CALCULES NADA POR TU CUENTA. Utiliza EXACTAMENTE los datos precalculados que te proporciono para generar un reporte.
-
-                --- DATOS MATEMÁTICOS PRECALCULADOS ---
-                Comparativa Mensual vs Histórica:
-                - Ingresos Últimos 30 días: ${inc30.toFixed(2)}€ (Media histórica: ${avgIncome.toFixed(2)}€)
-                - Gastos Últimos 30 días: ${exp30.toFixed(2)}€ (Media histórica: ${avgExpense.toFixed(2)}€)
-                - Ahorro Últimos 30 días: ${ahorro30d}€ (Media histórica: ${ahorroMedia}€)
-
-                Top 3 Categorías con más gasto (Últimos 30 días):
-                ${JSON.stringify(top3Categories)}
-
-                Top 5 Gastos más grandes (Últimos 30 días):
-                ${JSON.stringify(top5Expenses)}
-
-                Consumo de Combustible:
-                ${fuelContext}
-
-                --- INSTRUCCIONES DE FORMATO Y CONTENIDO ---
-                Genera el informe utilizando SOLO HTML simple (h4, p, strong, table, th, td, tr, div).
-                
-                1. Muestra una tabla centrada comparando Ingresos, Gastos y Ahorro (Mes actual vs Media).
-                2. Redacta un pequeño párrafo narrativo ("Conclusión y Análisis") observando los números de arriba (ej. "Tus gastos han subido respecto a la media...").
-                3. Muestra una pequeña tabla con el "Top 3 Categorías de Gasto".
-                4. Muestra una pequeña tabla con el "Top 5 Mayores Gastos" (incluye fecha, descripción y cantidad).
-                5. Finalmente, si hay datos de combustible, añádelos en una pequeña tabla de "Análisis de Combustible".
-
-                IMPORTANTE: Diseño minimalista profesional. NO pongas bordes en las tablas (usa un diseño limpio). Todos los valores dentro de las tablas deben estar centrados. NO devuelvas bloques de código markdown (\`\`\`html), devuelve directamente las etiquetas HTML.`;
+                Genera el informe utilizando SOLO HTML simple (p, strong, table, th, td, tr). Escribe una pequeña conclusión comparando los datos. Diseño limpio, sin bordes feos. Haz que las tablas HTML que generes no tengan bordes laterales, que estén centradas y que el texto de sus celdas esté alineado al centro. NO uses Markdown, solo html raw.`;
 
                 const aiResponse = await callGemini("Eres un sistema de maquetación HTML financiero estricto. Usa solo los datos entregados.", prompt);
                 const cleanHtml = aiResponse.replace(/```html/g, '').replace(/```/g, '').trim();
@@ -1187,95 +1540,49 @@ Responde de forma concisa y amigable usando Markdown.`
                 if (pdfChart2Instance) pdfChart2Instance.destroy();
                 if (pdfChart3Instance) pdfChart3Instance.destroy();
 
-                // 1. Gráfico Ingresos vs Gastos
                 pdfChart1Instance = new Chart(document.getElementById('pdfChart1'), {
-                    type: 'doughnut',
-                    data: { 
-                        labels: ['Ingresos (' + inc30.toFixed(2) + ' €)', 'Gastos (' + exp30.toFixed(2) + ' €)'], 
-                        datasets: [{ data: [inc30, exp30], backgroundColor: ['#4f46e5', '#ef4444'] }] 
-                    },
-                    options: { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { position: 'bottom' } } } 
+                    type: 'doughnut', data: { labels: ['Ingresos', 'Gastos'], datasets: [{ data: [inc30, exp30], backgroundColor: ['#4f46e5', '#ef4444'] }] },
+                    options: { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { position: 'bottom' } } },
+                    plugins: [verticalWhiteLabelsPlugin]
                 });
 
-                // 2. Gráfico % Gasto por Categoría
                 const totalLast30Exp = Object.values(last30).reduce((a,b) => a+b, 0);
-                const catLabels = Object.keys(last30).map(c => {
-                    const pct = totalLast30Exp > 0 ? ((last30[c] / totalLast30Exp) * 100).toFixed(1) : 0;
-                    return c + ' (' + pct + '%)';
-                });
+                const catLabels = Object.keys(last30).map(c => c + ' (' + (totalLast30Exp > 0 ? ((last30[c] / totalLast30Exp) * 100).toFixed(1) : 0) + '%)');
 
                 pdfChart2Instance = new Chart(document.getElementById('pdfChart2'), {
-                    type: 'doughnut',
-                    data: {
-                        labels: catLabels,
-                        datasets: [{ 
-                            data: Object.values(last30), 
-                            backgroundColor: ['#4c51bf', '#63b3ed', '#4fd1c5', '#f6ad55', '#e53e3e', '#d53f8c', '#a0aec0', '#9f7aea', '#38b2ac', '#ed8936'] 
-                        }]
-                    },
-                    options: { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { position: 'right' } } }
+                    type: 'doughnut', data: { labels: catLabels, datasets: [{ data: Object.values(last30), backgroundColor: ['#4c51bf', '#63b3ed', '#4fd1c5', '#f6ad55', '#e53e3e', '#d53f8c', '#a0aec0', '#9f7aea', '#38b2ac', '#ed8936'] }] },
+                    options: { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { position: 'right' } } },
+                    plugins: [verticalWhiteLabelsPlugin]
                 });
 
-                // 3. Gráfico Comparación Últimos 30 días VS Media Mensual Histórica
                 const categoriesList = Array.from(new Set([...Object.keys(averages), ...Object.keys(last30)]));
                 pdfChart3Instance = new Chart(document.getElementById('pdfChart3'), {
-                    type: 'bar',
-                    data: {
-                        labels: categoriesList,
-                        datasets: [
-                            { label: 'Media Mensual Histórica', data: categoriesList.map(c => averages[c] || 0), backgroundColor: '#4f46e5' },
-                            { label: 'Últimos 30 días', data: categoriesList.map(c => last30[c] || 0), backgroundColor: '#ef4444' }
-                        ]
-                    },
+                    type: 'bar', data: { labels: categoriesList, datasets: [{ label: 'Media Mensual Histórica', data: categoriesList.map(c => averages[c] || 0), backgroundColor: '#4f46e5' }, { label: 'Últimos 30 días', data: categoriesList.map(c => last30[c] || 0), backgroundColor: '#ef4444' }] },
                     options: { 
                         responsive: true, 
                         maintainAspectRatio: false, 
                         animation: false, 
                         plugins: { legend: { position: 'bottom' } },
-                        scales: { x: { ticks: { autoSkip: false, maxRotation: 90, minRotation: 90, font: { size: 10 } } } }
+                        scales: { x: { ticks: { maxRotation: 90, minRotation: 90 } } } // Rota texto inferior también para dar espacio
                     },
-                    plugins: [{
-                        id: 'numerosDentroDeBarras',
-                        afterDatasetsDraw(chart) {
-                            const { ctx } = chart;
-                            chart.data.datasets.forEach((dataset, i) => {
-                                chart.getDatasetMeta(i).data.forEach((bar, index) => {
-                                    const value = dataset.data[index];
-                                    if (value > 0 && (bar.base - bar.y) > 25) {
-                                        ctx.save();
-                                        ctx.fillStyle = '#ffffff'; 
-                                        ctx.font = 'bold 11px Arial';
-                                        ctx.textAlign = 'center';
-                                        ctx.textBaseline = 'middle';
-                                        const centroY = bar.y + (bar.base - bar.y) / 2;
-                                        ctx.translate(bar.x, centroY);
-                                        ctx.rotate(-Math.PI / 2);
-                                        ctx.fillText(value.toFixed(0) + '€', 0, 0);
-                                        ctx.restore();
-                                    }
-                                });
-                            });
-                        }
-                    }]
+                    plugins: [verticalWhiteLabelsPlugin]
                 });
 
-                // Pausa para que el navegador asimile el DOM antes de invocar la impresión
                 await new Promise(r => setTimeout(r, 600));
-
                 window.print();
 
             } catch (err) {
                 console.error(err);
                 alert("Error al generar el informe: " + err.message);
             } finally {
-                pdfContainer.style.display = 'none';
+                document.getElementById('pdfContainer').style.display = 'none';
                 pdfLoadingOverlay.classList.remove('flex');
                 pdfLoadingOverlay.classList.add('hidden');
                 generatePdfBtn.disabled = false;
             }
         });
 
-        /* --------------- FIN SECCIÓN IA --------------- */
+        /* --------------- RESTO DEL SISTEMA --------------- */
 
         const addSetting = async (settingType, value, initialBalance = null) => {
             const settingsRef = doc(db, dbCollections.userSettings, userId);
@@ -1298,15 +1605,7 @@ Responde de forma concisa y amigable usando Markdown.`
                     
                     if (settingType === 'accounts' && initialBalance !== null && parseFloat(initialBalance) > 0) {
                         const transactionData = {
-                            type: 'income',
-                            description: 'Saldo inicial',
-                            amount: parseFloat(initialBalance),
-                            category: 'Saldo Inicial',
-                            date: new Date(),
-                            account: value,
-                            accountingBook: 'Principal', 
-                            userId: userId,
-                            createdAt: serverTimestamp()
+                            type: 'income', description: 'Saldo inicial', amount: parseFloat(initialBalance), category: 'Saldo Inicial', date: new Date(), account: value, accountingBook: 'Principal', userId: userId, createdAt: serverTimestamp()
                         };
                         await addDoc(collection(db, dbCollections.transactions), transactionData);
                         alert("Saldo inicial registrado como transacción.");
@@ -1366,6 +1665,16 @@ Responde de forma concisa y amigable usando Markdown.`
             document.getElementById('date').value = new Date(transaction.date.seconds * 1000).toISOString().split('T')[0];
             document.getElementById('account').value = transaction.account;
             document.getElementById('accountingBook').value = transaction.accountingBook;
+
+            if (transaction.receiptImage) {
+                currentScannedImage = transaction.receiptImage;
+                receiptPreview.src = transaction.receiptImage;
+                receiptPreview.classList.remove('hidden');
+            } else {
+                currentScannedImage = null;
+                receiptPreview.src = '';
+                receiptPreview.classList.add('hidden');
+            }
         };
 
         const renderTransactionsTable = (transactions) => {
@@ -1381,7 +1690,7 @@ Responde de forma concisa y amigable usando Markdown.`
                 row.innerHTML = `
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">${data.date ? new Date(data.date.seconds * 1000).toLocaleDateString() : 'N/A'}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm">${data.type === 'income' ? 'Ingreso' : 'Gasto'}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">${data.description}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">${data.description} ${data.receiptImage ? '📎' : ''}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold">${data.amount.toFixed(2)} €</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm">${data.category}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm">${data.account}</td>
@@ -1414,15 +1723,7 @@ Responde de forma concisa y amigable usando Markdown.`
 
             const categories = filtered.reduce((acc, t) => { acc[t.category] = (acc[t.category] || 0) + t.amount; return acc; }, {});
             const config = {
-                type: 'doughnut',
-                data: {
-                    labels: Object.keys(categories),
-                    datasets: [{
-                        data: Object.values(categories),
-                        backgroundColor: ['#4c51bf', '#63b3ed', '#4fd1c5', '#f6ad55', '#e53e3e', '#d53f8c', '#a0aec0', '#9f7aea', '#38b2ac', '#ed8936'],
-                        hoverOffset: 4
-                    }]
-                },
+                type: 'doughnut', data: { labels: Object.keys(categories), datasets: [{ data: Object.values(categories), backgroundColor: ['#4c51bf', '#63b3ed', '#4fd1c5', '#f6ad55', '#e53e3e', '#d53f8c', '#a0aec0', '#9f7aea', '#38b2ac', '#ed8936'], hoverOffset: 4 }] },
                 options: { responsive: true, plugins: { legend: { position: 'right' }, tooltip: { callbacks: { label: (i) => `${i.label}: ${i.raw.toFixed(2)} €` } } } }
             };
             historyChart = new Chart(ctx, config);
@@ -1475,7 +1776,6 @@ Responde de forma concisa y amigable usando Markdown.`
         };
 
         const renderSettings = (settings) => {
-            // Guardamos las configuraciones para que la IA tenga contexto
             userCategories = settings.categories || [];
             userAccounts = settings.accounts || [];
             userAccountingBooks = settings.accountingBooks || [];
@@ -1517,7 +1817,7 @@ Responde de forma concisa y amigable usando Markdown.`
             unsubscribeSettings = onSnapshot(doc(db, dbCollections.userSettings, uid), (doc) => {
                 if (doc.exists()) renderSettings(doc.data());
                 else setDoc(doc.ref, {
-                    categories: ["Salario", "Inversiones", "Regalo", "Otros Ingresos", "Alquiler", "Comida", "Transporte", "Ocio", "Facturas", "Salud", "Educación", "Ropa", "Otros Gastos", "Transferencia", "Saldo Inicial", "No Contabilizados"],
+                    categories: ["Salario", "Inversiones", "Regalo", "Otros Ingresos", "Alquiler", "Comida", "Transporte", "Combustible", "Ocio", "Facturas", "Salud", "Educación", "Ropa", "Otros Gastos", "Transferencia", "Saldo Inicial", "No Contabilizados", "EXLABESA"],
                     accounts: ["Efectivo", "Cuenta Bancaria", "Tarjeta de Crédito"],
                     accountingBooks: ["Principal"]
                 });
