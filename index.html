@@ -1071,7 +1071,7 @@ Responde de forma concisa y amigable usando Markdown.`
                 
                 const diffTime = Math.abs(now - oldestDate);
                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                const totalMonths = Math.max(1, Math.floor(diffDays / 30))+1;
+                const totalMonths = Math.max(1, Math.floor(diffDays / 30));
 
                 const last30Txs = allUserTransactions.filter(t => t.date && t.date.toDate() >= thirtyDaysAgo);
                 const excludeCategories = ['Transferencia', 'Saldo Inicial', 'Inversiones', 'No Contabilizados'];
@@ -1084,7 +1084,7 @@ Responde de forma concisa y amigable usando Markdown.`
 
                 allUserTransactions.forEach(t => {
                     if (t.type !== 'expense' || excludeCategories.includes(t.category)) return;
-                    averages[t.category] = (averages[t.category] || 0) + (t.amount / totalMonths);
+                    averages[t.category] = (averages[t.category] || 0) + (t.amount / (totalMonths+1);
                 });
 
                 last30Txs.forEach(t => {
@@ -1092,8 +1092,8 @@ Responde de forma concisa y amigable usando Markdown.`
                     last30[t.category] = (last30[t.category] || 0) + t.amount;
                 });
 
-                const avgIncome = allUserTransactions.filter(t => t.type === 'income' && !excludeCategories.includes(t.category)).reduce((s,t) => s+t.amount, 0) / (totalMonths);
-                const avgExpense = allUserTransactions.filter(t => t.type === 'expense' && !excludeCategories.includes(t.category)).reduce((s,t) => s+t.amount, 0) / (totalMonths);
+                const avgIncome = allUserTransactions.filter(t => t.type === 'income' && !excludeCategories.includes(t.category)).reduce((s,t) => s+t.amount, 0) / (totalMonths+1);
+                const avgExpense = allUserTransactions.filter(t => t.type === 'expense' && !excludeCategories.includes(t.category)).reduce((s,t) => s+t.amount, 0) / (totalMonths+1);
 
                 // --- CÁLCULOS JS DE TABLAS PARA EL PDF (SIN ALUCINACIONES IA) ---
                 const top5Expenses = last30Txs
