@@ -843,7 +843,6 @@
             if (currentScannedImage) {
                 data.receiptImage = currentScannedImage;
             } else if (transactionIdField.value) {
-                // If editing and image was removed, clear it from DB
                 data.receiptImage = null;
             }
             
@@ -1023,7 +1022,7 @@
             };
         });
 
-        // BOTÓN BORRAR TODOS LOS TICKETS (AJUSTES)
+        // BOTÓN BORRAR TODOS LOS TICKETS
         document.getElementById('deleteAllTicketsBtn').addEventListener('click', async () => {
             if (confirm("ATENCIÓN: ¿Estás seguro de que quieres borrar TODAS las imágenes de los tickets guardados? Esta acción no se puede deshacer y liberará espacio en la base de datos.")) {
                 try {
@@ -1044,7 +1043,7 @@
             }
         });
 
-        // 2. CHATBOT FINANCIERO CON FUNCTION CALLING (AGENTE IA)
+        // 2. CHATBOT FINANCIERO
         const openChatBtn = document.getElementById('openChatBtn');
         const closeChatBtn = document.getElementById('closeChatBtn');
         const chatWidget = document.getElementById('chatWidget');
@@ -1190,7 +1189,7 @@ Responde de forma concisa usando Markdown.`
             }
         });
 
-        // FUNCIONES DE IMPRESIÓN COMUNES Y RESTAURACIÓN
+        // FUNCIONES DE IMPRESIÓN COMUNES
         const preparePrintView = (containerIdToShow) => {
             document.getElementById('mainApp').classList.add('print-hidden');
             ['pdfContainer', 'exlabesaPdfContainer', 'fuelPdfContainer'].forEach(id => {
@@ -1218,6 +1217,64 @@ Responde de forma concisa usando Markdown.`
             const overlay = document.getElementById('pdfLoadingOverlay');
             overlay.classList.remove('flex');
             overlay.classList.add('hidden');
+        };
+
+        // PLUGIN PARA ETIQUETAS BLANCAS Y VERTICALES ADAPTABLES
+        const verticalWhiteLabelsPlugin = {
+            id: 'verticalWhiteLabels',
+            afterDatasetsDraw(chart) {
+                const { ctx } = chart;
+                const isDoughnut = chart.config.type === 'doughnut';
+
+                chart.data.datasets.forEach((dataset, i) => {
+                    const meta = chart.getDatasetMeta(i);
+                    meta.data.forEach((element, index) => {
+                        const value = dataset.data[index];
+                        if (value > 0) {
+                            ctx.save();
+                            ctx.fillStyle = '#ffffff'; 
+                            ctx.font = 'bold 12px Arial';
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            
+                            let text = value >= 100000 ? (value/1000).toFixed(1) + 'k€' : value.toFixed(0) + '€';
+                            const textWidth = ctx.measureText(text).width;
+                            
+                            let x, y;
+                            let shouldDraw = true;
+
+                            if (isDoughnut) {
+                                const arcAngle = element.endAngle - element.startAngle;
+                                // Si la porción es muy pequeña (menos de ~5%), no la dibujamos
+                                if (arcAngle < 0.3) {
+                                    shouldDraw = false;
+                                } else {
+                                    const pos = element.tooltipPosition();
+                                    x = pos.x;
+                                    y = pos.y;
+                                }
+                            } else {
+                                const barHeight = Math.abs(element.base - element.y);
+                                const barWidth = element.width;
+                                // Si la barra es más corta que el texto + márgenes o muy estrecha, la ignoramos
+                                if (barHeight < textWidth + 12 || barWidth < 14) {
+                                    shouldDraw = false;
+                                } else {
+                                    x = element.x;
+                                    y = element.y + (element.base - element.y) / 2;
+                                }
+                            }
+
+                            if (shouldDraw) {
+                                ctx.translate(x, y);
+                                ctx.rotate(-Math.PI / 2); // Rotación VERTICAL
+                                ctx.fillText(text, 0, 0);
+                            }
+                            ctx.restore();
+                        }
+                    });
+                });
+            }
         };
 
         // 3. GENERACIÓN DE REPORTE EXLABESA
@@ -1477,48 +1534,6 @@ Responde de forma concisa usando Markdown.`
                 }, 500);
             }, 100);
         });
-
-        // PLUGIN GLOBAL PARA DIBUJAR ETIQUETAS BLANCAS Y VERTICALES EN LOS GRÁFICOS
-        const verticalWhiteLabelsPlugin = {
-            id: 'verticalWhiteLabels',
-            afterDatasetsDraw(chart) {
-                const { ctx } = chart;
-                chart.data.datasets.forEach((dataset, i) => {
-                    const meta = chart.getDatasetMeta(i);
-                    meta.data.forEach((element, index) => {
-                        const value = dataset.data[index];
-                        if (value > 0) {
-                            ctx.save();
-                            ctx.fillStyle = '#ffffff'; 
-                            ctx.font = 'bold 12px Arial';
-                            ctx.textAlign = 'center';
-                            ctx.textBaseline = 'middle';
-                            
-                            let x, y;
-                            if (element.tooltipPosition) {
-                                const pos = element.tooltipPosition();
-                                x = pos.x;
-                                y = pos.y;
-                            } else {
-                                x = element.x;
-                                y = element.y + (element.base - element.y) / 2;
-                                if ((element.base - element.y) < 25) {
-                                    ctx.restore();
-                                    return; 
-                                }
-                            }
-
-                            ctx.translate(x, y);
-                            ctx.rotate(-Math.PI / 2); // Rotación VERTICAL (-90 grados)
-                            
-                            let text = value >= 1000 ? (value/1000).toFixed(1) + 'k€' : value.toFixed(0) + '€';
-                            ctx.fillText(text, 0, 0);
-                            ctx.restore();
-                        }
-                    });
-                });
-            }
-        };
 
         // 5. GENERACIÓN DE PDF NATIVA (30 DÍAS IA)
         const generatePdfBtn = document.getElementById('generatePdfBtn');
