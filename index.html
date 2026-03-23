@@ -35,7 +35,6 @@
             filter: blur(5px);
             transition: filter 0.3s ease-in-out;
         }
-        /* Estilos para el chat flotante */
         #chatWidget {
             transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
         }
@@ -83,17 +82,18 @@
             color: #374151 !important;
         }
 
-        /* ESTILOS PARA LA IMPRESIÓN/GENERACIÓN DE PDF NATIVA */
+        /* ESTILOS PARA LA IMPRESIÓN/GENERACIÓN DE PDF NATIVA AISLADA */
         @media print {
             body { 
                 background-color: white !important; 
                 margin: 0;
                 padding: 0;
             }
-            #mainApp, #authScreen, #openChatBtn, #chatWidget, #pdfLoadingOverlay, #exlabesaModal, #fuelModal {
+            .print-hidden, #mainApp, #authScreen, #openChatBtn, #chatWidget, #pdfLoadingOverlay, #exlabesaModal, #fuelModal {
                 display: none !important;
             }
-            #pdfContainer, #exlabesaPdfContainer, #fuelPdfContainer {
+            .print-visible {
+                display: block !important;
                 position: static !important;
                 width: 100% !important;
                 max-width: 100% !important;
@@ -127,11 +127,11 @@
     <div id="pdfLoadingOverlay" class="hidden fixed inset-0 bg-white z-[9999] flex-col items-center justify-center">
         <div class="spinner-indigo mb-4"></div>
         <h2 class="text-xl font-bold text-gray-800">Generando reporte...</h2>
-        <p class="text-gray-500 text-sm mt-2">Se abrirá el diálogo para guardar como PDF en breve.</p>
+        <p class="text-gray-500 text-sm mt-2">Se abrirá el diálogo de impresión en breve.</p>
     </div>
 
     <!-- MODAL REPORTE EXLABESA -->
-    <div id="exlabesaModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center">
+    <div id="exlabesaModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[9998] flex items-center justify-center">
         <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
             <h2 class="text-xl font-bold mb-4 text-gray-800">Reporte Dietas EXLABESA</h2>
             <p class="text-sm text-gray-600 mb-4">Selecciona el rango de fechas para generar el reporte con tickets adjuntos.</p>
@@ -151,7 +151,7 @@
     </div>
 
     <!-- MODAL REPORTE COMBUSTIBLE -->
-    <div id="fuelModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center">
+    <div id="fuelModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[9998] flex items-center justify-center">
         <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
             <h2 class="text-xl font-bold mb-4 text-gray-800">Reporte Consumo Combustible</h2>
             <p class="text-sm text-gray-600 mb-4">Selecciona el rango de fechas a comparar contra tu media histórica.</p>
@@ -320,7 +320,10 @@
                         <div class="flex justify-between items-center mb-4">
                             <h3 id="formTitle" class="text-lg font-semibold text-gray-800"></h3>
                             <div class="flex items-center">
-                                <img id="receiptPreview" title="Clic para eliminar" class="hidden h-10 w-10 object-cover rounded mr-3 border border-gray-300 cursor-pointer hover:opacity-75">
+                                <div id="receiptPreviewContainer" class="hidden relative mr-3">
+                                    <img id="receiptPreview" class="h-10 w-10 object-cover rounded border border-gray-300">
+                                    <button type="button" id="removeReceiptBtn" title="Eliminar foto" class="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-700 shadow focus:outline-none">x</button>
+                                </div>
                                 <input type="file" id="receiptInput" accept="image/*" class="hidden">
                                 <button type="button" id="scanReceiptBtn" class="flex items-center bg-purple-600 text-white text-sm font-semibold py-2 px-4 rounded shadow-md hover:bg-purple-700 transition duration-300">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -516,6 +519,20 @@
                         <p id="apiKeyStatus" class="text-xs mt-2 text-green-600 hidden">¡Clave guardada en tu navegador!</p>
                     </div>
 
+                    <!-- NUEVO: BOTÓN BORRAR TODOS LOS TICKETS -->
+                    <div class="mb-8 p-4 bg-red-50 rounded-lg border border-red-200">
+                        <h3 class="font-semibold text-red-800 mb-2 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                            Gestión de Almacenamiento (Base de Datos)
+                        </h3>
+                        <p class="text-sm text-gray-600 mb-3">Si te estás quedando sin espacio en Firebase, puedes borrar permanentemente todas las fotos de los tickets. Los datos financieros (cantidades, fechas, conceptos) NO se borrarán.</p>
+                        <button id="deleteAllTicketsBtn" class="bg-red-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-red-700 transition duration-300">
+                            Borrar todas las fotos de tickets
+                        </button>
+                    </div>
+
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         <div>
                             <h3 class="font-semibold text-gray-800 mb-2">Categorías</h3>
@@ -622,7 +639,7 @@
     </div>
 
     <!-- CONTENEDOR PDF 30 DÍAS -->
-    <div id="pdfContainer" style="display: none; position: absolute; left: -9999px; width: 1000px; padding: 40px; background: white;">
+    <div id="pdfContainer" class="hidden bg-white p-8 w-full max-w-4xl mx-auto">
         <h1 class="text-3xl font-bold text-gray-800 mb-2 border-b-2 border-gray-800 pb-2">Resumen Financiero (Últimos 30 Días)</h1>
         <p class="text-gray-600 mb-8 font-medium text-base" id="pdfDateRange"></p>
         
@@ -655,7 +672,7 @@
     </div>
 
     <!-- CONTENEDOR PDF EXLABESA -->
-    <div id="exlabesaPdfContainer" style="display: none; position: absolute; left: -9999px; width: 1000px; padding: 40px; background: white;">
+    <div id="exlabesaPdfContainer" class="hidden bg-white p-8 w-full max-w-4xl mx-auto">
         <h1 class="text-3xl font-bold text-gray-800 mb-2 border-b-2 border-gray-800 pb-2">Reporte de Dietas - EXLABESA</h1>
         <p class="text-gray-600 mb-8 font-medium text-base" id="exlabesaDateRange"></p>
 
@@ -681,34 +698,34 @@
     </div>
 
     <!-- CONTENEDOR PDF COMBUSTIBLE -->
-    <div id="fuelPdfContainer" style="display: none; position: absolute; left: -9999px; width: 1000px; padding: 40px; background: white;">
+    <div id="fuelPdfContainer" class="hidden bg-white p-8 w-full max-w-4xl mx-auto">
         <h1 class="text-3xl font-bold text-gray-800 mb-2 border-b-2 border-gray-800 pb-2">Reporte de Consumo de Combustible</h1>
         <p class="text-gray-600 mb-8 font-medium text-base" id="fuelDateRange"></p>
 
         <div class="grid grid-cols-2 gap-8 mb-8 avoid-break">
             <div class="p-6 bg-gray-50 border border-gray-200 rounded-lg">
                 <h3 class="text-xl font-bold text-center mb-4 text-indigo-700 border-b border-indigo-200 pb-2">Media Histórica Total</h3>
-                <div id="fuelHistoricalStats" class="space-y-3 text-lg">
+                <div id="fuelHistoricalStats" class="space-y-3 text-lg text-center">
                     <!-- Rellenado por JS -->
                 </div>
             </div>
             <div class="p-6 bg-gray-50 border border-gray-200 rounded-lg">
                 <h3 class="text-xl font-bold text-center mb-4 text-yellow-700 border-b border-yellow-200 pb-2">Período Seleccionado</h3>
-                <div id="fuelSelectedStats" class="space-y-3 text-lg">
+                <div id="fuelSelectedStats" class="space-y-3 text-lg text-center">
                     <!-- Rellenado por JS -->
                 </div>
             </div>
         </div>
 
         <h2 class="text-2xl font-bold text-gray-800 mb-4 avoid-break">Desglose del Período Seleccionado</h2>
-        <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px; text-align: left; font-size: 14px;">
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px; text-align: center; font-size: 14px;">
             <thead>
                 <tr style="border-bottom: 2px solid #ddd; background-color: #f9fafb;">
                     <th style="padding: 10px;">Fecha</th>
                     <th style="padding: 10px;">Descripción (Original)</th>
-                    <th style="padding: 10px; text-align: right;">Litros Extraídos</th>
-                    <th style="padding: 10px; text-align: right;">Kilómetros Extraídos</th>
-                    <th style="padding: 10px; text-align: right;">Coste (€)</th>
+                    <th style="padding: 10px;">Litros Extraídos</th>
+                    <th style="padding: 10px;">Kilómetros Extraídos</th>
+                    <th style="padding: 10px;">Coste (€)</th>
                 </tr>
             </thead>
             <tbody id="fuelTableBody"></tbody>
@@ -805,7 +822,7 @@
             currentScannedImage = null;
             const preview = document.getElementById('receiptPreview');
             preview.src = '';
-            preview.classList.add('hidden');
+            document.getElementById('receiptPreviewContainer').classList.add('hidden');
         };
         
         const saveTransaction = async (e) => {
@@ -825,6 +842,9 @@
             
             if (currentScannedImage) {
                 data.receiptImage = currentScannedImage;
+            } else if (transactionIdField.value) {
+                // If editing and image was removed, clear it from DB
+                data.receiptImage = null;
             }
             
             try {
@@ -944,14 +964,16 @@
         const scanReceiptBtn = document.getElementById('scanReceiptBtn');
         const scanReceiptText = document.getElementById('scanReceiptText');
         const receiptPreview = document.getElementById('receiptPreview');
+        const removeReceiptBtn = document.getElementById('removeReceiptBtn');
+        const receiptPreviewContainer = document.getElementById('receiptPreviewContainer');
 
         scanReceiptBtn.addEventListener('click', () => receiptInput.click());
 
-        receiptPreview.addEventListener('click', () => {
+        removeReceiptBtn.addEventListener('click', () => {
             if (confirm("¿Deseas quitar la imagen adjunta a esta transacción?")) {
                 currentScannedImage = null;
                 receiptPreview.src = '';
-                receiptPreview.classList.add('hidden');
+                receiptPreviewContainer.classList.add('hidden');
                 receiptInput.value = '';
             }
         });
@@ -972,7 +994,7 @@
                     
                     currentScannedImage = compressedBase64;
                     receiptPreview.src = compressedBase64;
-                    receiptPreview.classList.remove('hidden');
+                    receiptPreviewContainer.classList.remove('hidden');
 
                     if (localStorage.getItem('geminiApiKey')) {
                         const prompt = `Analiza este ticket de compra. Extrae el nombre del comercio (como una descripción breve), el total gastado (un número), y la fecha de compra en formato YYYY-MM-DD. 
@@ -999,6 +1021,27 @@
                     receiptInput.value = ''; 
                 }
             };
+        });
+
+        // BOTÓN BORRAR TODOS LOS TICKETS (AJUSTES)
+        document.getElementById('deleteAllTicketsBtn').addEventListener('click', async () => {
+            if (confirm("ATENCIÓN: ¿Estás seguro de que quieres borrar TODAS las imágenes de los tickets guardados? Esta acción no se puede deshacer y liberará espacio en la base de datos.")) {
+                try {
+                    let count = 0;
+                    for (let t of allUserTransactions) {
+                        if (t.receiptImage) {
+                            await updateDoc(doc(db, dbCollections.transactions, t.id), {
+                                receiptImage: null
+                            });
+                            count++;
+                        }
+                    }
+                    alert(`Se han eliminado ${count} imágenes de tickets correctamente.`);
+                } catch (e) {
+                    console.error("Error borrando tickets globales:", e);
+                    alert("Hubo un error al borrar las fotos de los tickets.");
+                }
+            }
         });
 
         // 2. CHATBOT FINANCIERO CON FUNCTION CALLING (AGENTE IA)
@@ -1147,6 +1190,36 @@ Responde de forma concisa usando Markdown.`
             }
         });
 
+        // FUNCIONES DE IMPRESIÓN COMUNES Y RESTAURACIÓN
+        const preparePrintView = (containerIdToShow) => {
+            document.getElementById('mainApp').classList.add('print-hidden');
+            ['pdfContainer', 'exlabesaPdfContainer', 'fuelPdfContainer'].forEach(id => {
+                document.getElementById(id).classList.add('hidden', 'print-hidden');
+                document.getElementById(id).classList.remove('print-visible');
+            });
+            document.getElementById(containerIdToShow).classList.remove('hidden', 'print-hidden');
+            document.getElementById(containerIdToShow).classList.add('print-visible');
+        };
+
+        const cleanupPrintView = () => {
+            document.getElementById('pdfContainer').classList.add('hidden');
+            document.getElementById('exlabesaPdfContainer').classList.add('hidden');
+            document.getElementById('fuelPdfContainer').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('print-hidden');
+        };
+
+        const showLoadingOverlay = () => {
+            const overlay = document.getElementById('pdfLoadingOverlay');
+            overlay.classList.remove('hidden');
+            overlay.classList.add('flex');
+        };
+
+        const hideLoadingOverlay = () => {
+            const overlay = document.getElementById('pdfLoadingOverlay');
+            overlay.classList.remove('flex');
+            overlay.classList.add('hidden');
+        };
+
         // 3. GENERACIÓN DE REPORTE EXLABESA
         document.getElementById('openExlabesaModalBtn').addEventListener('click', () => {
             document.getElementById('exlabesaModal').classList.remove('hidden');
@@ -1179,73 +1252,73 @@ Responde de forma concisa usando Markdown.`
                 return;
             }
 
-            const tbody = document.getElementById('exlabesaTableBody');
-            tbody.innerHTML = '';
-            let total = 0;
-            exlabesaTxs.forEach(t => {
-                total += t.amount;
-                tbody.innerHTML += `
-                    <tr style="border-bottom: 1px solid #eee;">
-                        <td style="padding: 10px;">${t.date.toDate().toLocaleDateString('es-ES')}</td>
-                        <td style="padding: 10px;">${t.description}</td>
-                        <td style="padding: 10px; text-align: right;">${t.amount.toFixed(2)} €</td>
-                    </tr>
-                `;
-            });
-            document.getElementById('exlabesaTotalAmount').innerText = total.toFixed(2) + ' €';
-            document.getElementById('exlabesaDateRange').innerText = `Período: ${start.toLocaleDateString('es-ES')} a ${end.toLocaleDateString('es-ES')}`;
-
-            const ticketsContainer = document.getElementById('exlabesaTicketsContainer');
-            ticketsContainer.innerHTML = '';
-            let hasTickets = false;
-            
-            exlabesaTxs.forEach(t => {
-                if (t.receiptImage) {
-                    hasTickets = true;
-                    ticketsContainer.innerHTML += `
-                        <div class="mb-6 p-4 rounded border border-gray-300 avoid-break">
-                            <p class="font-bold text-sm mb-3 text-gray-800 border-b pb-2">
-                                ${t.date.toDate().toLocaleDateString('es-ES')} - ${t.description} <span class="text-indigo-600">(${t.amount.toFixed(2)} €)</span>
-                            </p>
-                            <img src="${t.receiptImage}" style="max-width: 100%; max-height: 400px; display: block; margin: 0 auto;" />
-                        </div>
-                    `;
-                }
-            });
-            
-            if (!hasTickets) {
-                ticketsContainer.innerHTML = '<p class="text-gray-500 italic col-span-2">No hay tickets guardados para las transacciones de este período.</p>';
-            }
-
             document.getElementById('exlabesaModal').classList.add('hidden');
-            
-            document.getElementById('pdfContainer').style.display = 'none';
-            document.getElementById('fuelPdfContainer').style.display = 'none';
-            document.getElementById('exlabesaPdfContainer').style.display = 'block';
+            showLoadingOverlay();
 
             setTimeout(() => {
-                window.print();
+                const tbody = document.getElementById('exlabesaTableBody');
+                tbody.innerHTML = '';
+                let total = 0;
+                exlabesaTxs.forEach(t => {
+                    total += t.amount;
+                    tbody.innerHTML += `
+                        <tr style="border-bottom: 1px solid #eee;">
+                            <td style="padding: 10px;">${t.date.toDate().toLocaleDateString('es-ES')}</td>
+                            <td style="padding: 10px;">${t.description}</td>
+                            <td style="padding: 10px; text-align: right;">${t.amount.toFixed(2)} €</td>
+                        </tr>
+                    `;
+                });
+                document.getElementById('exlabesaTotalAmount').innerText = total.toFixed(2) + ' €';
+                document.getElementById('exlabesaDateRange').innerText = `Período: ${start.toLocaleDateString('es-ES')} a ${end.toLocaleDateString('es-ES')}`;
+
+                const ticketsContainer = document.getElementById('exlabesaTicketsContainer');
+                ticketsContainer.innerHTML = '';
+                let hasTickets = false;
                 
-                document.getElementById('exlabesaPdfContainer').style.display = 'none';
-
-                setTimeout(async () => {
-                    if (hasTickets && confirm("¿Deseas eliminar las imágenes de los tickets utilizados en este informe para ahorrar espacio en la base de datos?\n(Los importes y conceptos financieros NO se borrarán).")) {
-                        try {
-                            for (let t of exlabesaTxs) {
-                                if (t.receiptImage) {
-                                    await updateDoc(doc(db, dbCollections.transactions, t.id), {
-                                        receiptImage: null
-                                    });
-                                }
-                            }
-                            alert("Imágenes eliminadas correctamente de la base de datos.");
-                        } catch (err) {
-                            console.error("Error al borrar tickets:", err);
-                        }
+                exlabesaTxs.forEach(t => {
+                    if (t.receiptImage) {
+                        hasTickets = true;
+                        ticketsContainer.innerHTML += `
+                            <div class="mb-6 p-4 rounded border border-gray-300 avoid-break">
+                                <p class="font-bold text-sm mb-3 text-gray-800 border-b pb-2">
+                                    ${t.date.toDate().toLocaleDateString('es-ES')} - ${t.description} <span class="text-indigo-600">(${t.amount.toFixed(2)} €)</span>
+                                </p>
+                                <img src="${t.receiptImage}" style="max-width: 100%; max-height: 400px; display: block; margin: 0 auto;" />
+                            </div>
+                        `;
                     }
-                }, 500); 
+                });
+                
+                if (!hasTickets) {
+                    ticketsContainer.innerHTML = '<p class="text-gray-500 italic col-span-2">No hay tickets guardados para las transacciones de este período.</p>';
+                }
 
-            }, 500);
+                preparePrintView('exlabesaPdfContainer');
+                hideLoadingOverlay();
+
+                setTimeout(() => {
+                    window.print();
+                    
+                    setTimeout(async () => {
+                        cleanupPrintView();
+                        if (hasTickets && confirm("¿Deseas eliminar las imágenes de los tickets utilizados en este informe para ahorrar espacio en la base de datos?\n(Los importes y conceptos financieros NO se borrarán).")) {
+                            try {
+                                for (let t of exlabesaTxs) {
+                                    if (t.receiptImage) {
+                                        await updateDoc(doc(db, dbCollections.transactions, t.id), {
+                                            receiptImage: null
+                                        });
+                                    }
+                                }
+                                alert("Imágenes eliminadas correctamente de la base de datos.");
+                            } catch (err) {
+                                console.error("Error al borrar tickets:", err);
+                            }
+                        }
+                    }, 500); 
+                }, 500);
+            }, 100);
         });
 
         // 4. GENERACIÓN DE REPORTE COMBUSTIBLE
@@ -1326,79 +1399,83 @@ Responde de forma concisa usando Markdown.`
                 return;
             }
 
-            const histDiv = document.getElementById('fuelHistoricalStats');
-            if (historicalCalc.valid) {
-                histDiv.innerHTML = `
-                    <p><span class="font-semibold text-gray-600">Consumo Litros:</span> <span class="font-bold text-gray-900">${historicalCalc.lPer100.toFixed(2)} L/100km</span></p>
-                    <p><span class="font-semibold text-gray-600">Consumo Coste:</span> <span class="font-bold text-gray-900">${historicalCalc.eurPer100.toFixed(2)} €/100km</span></p>
-                    <p class="text-sm mt-4 text-gray-500">Basado en ${historicalCalc.diffKm.toFixed(0)} Kms (Sumados ${historicalCalc.sumL.toFixed(2)}L y ${historicalCalc.sumEur.toFixed(2)}€).</p>
-                `;
-            } else {
-                histDiv.innerHTML = `<p class="text-gray-500 italic">No hay suficientes datos históricos con formato válido para calcular la media.</p>`;
-            }
-
-            const selDiv = document.getElementById('fuelSelectedStats');
-            if (selectedCalc.valid) {
-                let colorL = historicalCalc.valid && selectedCalc.lPer100 > historicalCalc.lPer100 ? 'text-red-600' : 'text-green-600';
-                let colorE = historicalCalc.valid && selectedCalc.eurPer100 > historicalCalc.eurPer100 ? 'text-red-600' : 'text-green-600';
-                
-                selDiv.innerHTML = `
-                    <p><span class="font-semibold text-gray-600">Consumo Litros:</span> <span class="font-bold ${colorL}">${selectedCalc.lPer100.toFixed(2)} L/100km</span></p>
-                    <p><span class="font-semibold text-gray-600">Consumo Coste:</span> <span class="font-bold ${colorE}">${selectedCalc.eurPer100.toFixed(2)} €/100km</span></p>
-                    <p class="text-sm mt-4 text-gray-500">Basado en ${selectedCalc.diffKm.toFixed(0)} Kms (Sumados ${selectedCalc.sumL.toFixed(2)}L y ${selectedCalc.sumEur.toFixed(2)}€).</p>
-                `;
-            } else {
-                selDiv.innerHTML = `<p class="text-gray-500 italic">Se requieren al menos 2 repostajes en este periodo para calcular el consumo.</p>`;
-            }
-
-            const tbody = document.getElementById('fuelTableBody');
-            tbody.innerHTML = '';
-            
-            if (selectedCalc.data.length > 0) {
-                selectedCalc.data.forEach((t, index) => {
-                    const isFirst = index === 0;
-                    
-                    const litrosHtml = isFirst 
-                        ? `<span style="text-decoration: line-through; color: #9ca3af;" title="Obviado para el cálculo">${t.liters.toFixed(2)} L</span>` 
-                        : `${t.liters.toFixed(2)} L`;
-                        
-                    const eurosHtml = isFirst 
-                        ? `<span style="text-decoration: line-through; color: #9ca3af;" title="Obviado para el cálculo">${t.amount.toFixed(2)} €</span>` 
-                        : `${t.amount.toFixed(2)} €`;
-                        
-                    const kmHtml = isFirst 
-                        ? `<span style="font-weight: bold; color: #4338ca;">${t.kms.toFixed(0)} Km</span> <br><span style="font-size: 0.75rem; color: #6b7280;">(Km Inicial)</span>` 
-                        : `${t.kms.toFixed(0)} Km`;
-
-                    tbody.innerHTML += `
-                        <tr style="border-bottom: 1px solid #eee;">
-                            <td style="padding: 10px;">${t.date.toLocaleDateString('es-ES')}</td>
-                            <td style="padding: 10px;">
-                                ${t.originalDesc} 
-                                ${isFirst ? '<br><span style="font-size: 0.75rem; background: #fef3c7; color: #92400e; padding: 2px 6px; border-radius: 4px; border: 1px solid #fde68a;">Solo se usan los Km de este registro</span>' : ''}
-                            </td>
-                            <td style="padding: 10px; text-align: right;">${litrosHtml}</td>
-                            <td style="padding: 10px; text-align: right;">${kmHtml}</td>
-                            <td style="padding: 10px; text-align: right;">${eurosHtml}</td>
-                        </tr>
-                    `;
-                });
-            } else {
-                tbody.innerHTML = '<tr><td colspan="5" style="padding:10px; text-align:center;">No hay datos válidos en este rango.</td></tr>';
-            }
-
-            document.getElementById('fuelDateRange').innerText = `Período: ${start.toLocaleDateString('es-ES')} a ${end.toLocaleDateString('es-ES')}`;
             document.getElementById('fuelModal').classList.add('hidden');
-
-            document.getElementById('pdfContainer').style.display = 'none';
-            document.getElementById('exlabesaPdfContainer').style.display = 'none';
-            document.getElementById('fuelPdfContainer').style.display = 'block';
+            showLoadingOverlay();
 
             setTimeout(() => {
-                window.print();
-                document.getElementById('fuelPdfContainer').style.display = 'none';
-            }, 500);
+                const histDiv = document.getElementById('fuelHistoricalStats');
+                if (historicalCalc.valid) {
+                    histDiv.innerHTML = `
+                        <p><span class="font-semibold text-gray-600">Consumo Litros:</span> <span class="font-bold text-gray-900">${historicalCalc.lPer100.toFixed(2)} L/100km</span></p>
+                        <p><span class="font-semibold text-gray-600">Consumo Coste:</span> <span class="font-bold text-gray-900">${historicalCalc.eurPer100.toFixed(2)} €/100km</span></p>
+                        <p class="text-sm mt-4 text-gray-500">Basado en ${historicalCalc.diffKm.toFixed(0)} Kms (Sumados ${historicalCalc.sumL.toFixed(2)}L y ${historicalCalc.sumEur.toFixed(2)}€).</p>
+                    `;
+                } else {
+                    histDiv.innerHTML = `<p class="text-gray-500 italic">No hay suficientes datos históricos con formato válido para calcular la media.</p>`;
+                }
 
+                const selDiv = document.getElementById('fuelSelectedStats');
+                if (selectedCalc.valid) {
+                    let colorL = historicalCalc.valid && selectedCalc.lPer100 > historicalCalc.lPer100 ? 'text-red-600' : 'text-green-600';
+                    let colorE = historicalCalc.valid && selectedCalc.eurPer100 > historicalCalc.eurPer100 ? 'text-red-600' : 'text-green-600';
+                    
+                    selDiv.innerHTML = `
+                        <p><span class="font-semibold text-gray-600">Consumo Litros:</span> <span class="font-bold ${colorL}">${selectedCalc.lPer100.toFixed(2)} L/100km</span></p>
+                        <p><span class="font-semibold text-gray-600">Consumo Coste:</span> <span class="font-bold ${colorE}">${selectedCalc.eurPer100.toFixed(2)} €/100km</span></p>
+                        <p class="text-sm mt-4 text-gray-500">Basado en ${selectedCalc.diffKm.toFixed(0)} Kms (Sumados ${selectedCalc.sumL.toFixed(2)}L y ${selectedCalc.sumEur.toFixed(2)}€).</p>
+                    `;
+                } else {
+                    selDiv.innerHTML = `<p class="text-gray-500 italic">Se requieren al menos 2 repostajes en este periodo para calcular el consumo.</p>`;
+                }
+
+                const tbody = document.getElementById('fuelTableBody');
+                tbody.innerHTML = '';
+                
+                if (selectedCalc.data.length > 0) {
+                    selectedCalc.data.forEach((t, index) => {
+                        const isFirst = index === 0;
+                        
+                        const litrosHtml = isFirst 
+                            ? `<span style="text-decoration: line-through; color: #9ca3af;" title="Obviado para el cálculo">${t.liters.toFixed(2)} L</span>` 
+                            : `${t.liters.toFixed(2)} L`;
+                            
+                        const eurosHtml = isFirst 
+                            ? `<span style="text-decoration: line-through; color: #9ca3af;" title="Obviado para el cálculo">${t.amount.toFixed(2)} €</span>` 
+                            : `${t.amount.toFixed(2)} €`;
+                            
+                        const kmHtml = isFirst 
+                            ? `<span style="font-weight: bold; color: #4338ca;">${t.kms.toFixed(0)} Km</span> <br><span style="font-size: 0.75rem; color: #6b7280;">(Km Inicial)</span>` 
+                            : `${t.kms.toFixed(0)} Km`;
+
+                        tbody.innerHTML += `
+                            <tr style="border-bottom: 1px solid #eee;">
+                                <td style="padding: 10px;">${t.date.toLocaleDateString('es-ES')}</td>
+                                <td style="padding: 10px;">
+                                    ${t.originalDesc} 
+                                    ${isFirst ? '<br><span style="font-size: 0.75rem; background: #fef3c7; color: #92400e; padding: 2px 6px; border-radius: 4px; border: 1px solid #fde68a;">Solo se usan los Km de este registro</span>' : ''}
+                                </td>
+                                <td style="padding: 10px;">${litrosHtml}</td>
+                                <td style="padding: 10px;">${kmHtml}</td>
+                                <td style="padding: 10px;">${eurosHtml}</td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="5" style="padding:10px; text-align:center;">No hay datos válidos en este rango.</td></tr>';
+                }
+
+                document.getElementById('fuelDateRange').innerText = `Período: ${start.toLocaleDateString('es-ES')} a ${end.toLocaleDateString('es-ES')}`;
+                
+                preparePrintView('fuelPdfContainer');
+                hideLoadingOverlay();
+
+                setTimeout(() => {
+                    window.print();
+                    setTimeout(() => {
+                        cleanupPrintView();
+                    }, 500);
+                }, 500);
+            }, 100);
         });
 
         // PLUGIN GLOBAL PARA DIBUJAR ETIQUETAS BLANCAS Y VERTICALES EN LOS GRÁFICOS
@@ -1418,7 +1495,6 @@ Responde de forma concisa usando Markdown.`
                             ctx.textBaseline = 'middle';
                             
                             let x, y;
-                            // Comprobar si es un gráfico de donut/circular o barras
                             if (element.tooltipPosition) {
                                 const pos = element.tooltipPosition();
                                 x = pos.x;
@@ -1426,7 +1502,6 @@ Responde de forma concisa usando Markdown.`
                             } else {
                                 x = element.x;
                                 y = element.y + (element.base - element.y) / 2;
-                                // Si la barra es muy pequeña, no pintamos número para no salirse
                                 if ((element.base - element.y) < 25) {
                                     ctx.restore();
                                     return; 
@@ -1462,13 +1537,8 @@ Responde de forma concisa usando Markdown.`
 
             try {
                 generatePdfBtn.disabled = true;
-                pdfLoadingOverlay.classList.remove('hidden');
-                pdfLoadingOverlay.classList.add('flex');
+                showLoadingOverlay();
                 
-                document.getElementById('exlabesaPdfContainer').style.display = 'none';
-                document.getElementById('fuelPdfContainer').style.display = 'none';
-                document.getElementById('pdfContainer').style.display = 'block';
-
                 const now = new Date();
                 const thirtyDaysAgo = new Date();
                 thirtyDaysAgo.setDate(now.getDate() - 30);
@@ -1528,13 +1598,15 @@ Responde de forma concisa usando Markdown.`
                 Top 3 Categorías Gasto (Últimos 30 días): ${JSON.stringify(top3Categories)}
                 Top 5 Gastos Grandes (Últimos 30 días): ${JSON.stringify(top5Expenses)}
 
-                Genera el informe utilizando SOLO HTML simple (p, strong, table, th, td, tr). Escribe una pequeña conclusión comparando los datos. Diseño limpio, sin bordes feos. Haz que las tablas HTML que generes no tengan bordes laterales, que estén centradas y que el texto de sus celdas esté alineado al centro. NO uses Markdown, solo html raw.`;
+                Genera el informe utilizando SOLO HTML simple (p, strong, table, th, td, tr). Escribe una pequeña conclusión comparando los datos. Diseño limpio. IMPORTANTE: NO uses la etiqueta <caption>, ni bordes. NO uses Markdown (\`\`\`html), solo devuelve HTML en bruto. Las tablas deben estar limpias.`;
 
                 const aiResponse = await callGemini("Eres un sistema de maquetación HTML financiero estricto. Usa solo los datos entregados.", prompt);
                 const cleanHtml = aiResponse.replace(/```html/g, '').replace(/```/g, '').trim();
 
                 document.getElementById('pdfDateRange').innerText = `Período: ${thirtyDaysAgo.toLocaleDateString('es-ES')} - ${now.toLocaleDateString('es-ES')}`;
                 document.getElementById('pdfAiAnalysis').innerHTML = cleanHtml;
+
+                preparePrintView('pdfContainer');
 
                 if (pdfChart1Instance) pdfChart1Instance.destroy();
                 if (pdfChart2Instance) pdfChart2Instance.destroy();
@@ -1563,23 +1635,28 @@ Responde de forma concisa usando Markdown.`
                         maintainAspectRatio: false, 
                         animation: false, 
                         plugins: { legend: { position: 'bottom' } },
-                        scales: { x: { ticks: { maxRotation: 90, minRotation: 90 } } } // Rota texto inferior también para dar espacio
+                        scales: { x: { ticks: { maxRotation: 90, minRotation: 90 } } } 
                     },
                     plugins: [verticalWhiteLabelsPlugin]
                 });
 
-                await new Promise(r => setTimeout(r, 600));
-                window.print();
+                hideLoadingOverlay();
+
+                setTimeout(() => {
+                    window.print();
+                    setTimeout(() => {
+                        cleanupPrintView();
+                        generatePdfBtn.disabled = false;
+                    }, 500);
+                }, 500);
 
             } catch (err) {
                 console.error(err);
                 alert("Error al generar el informe: " + err.message);
-            } finally {
-                document.getElementById('pdfContainer').style.display = 'none';
-                pdfLoadingOverlay.classList.remove('flex');
-                pdfLoadingOverlay.classList.add('hidden');
+                hideLoadingOverlay();
+                cleanupPrintView();
                 generatePdfBtn.disabled = false;
-            }
+            } 
         });
 
         /* --------------- RESTO DEL SISTEMA --------------- */
@@ -1669,11 +1746,11 @@ Responde de forma concisa usando Markdown.`
             if (transaction.receiptImage) {
                 currentScannedImage = transaction.receiptImage;
                 receiptPreview.src = transaction.receiptImage;
-                receiptPreview.classList.remove('hidden');
+                receiptPreviewContainer.classList.remove('hidden');
             } else {
                 currentScannedImage = null;
                 receiptPreview.src = '';
-                receiptPreview.classList.add('hidden');
+                receiptPreviewContainer.classList.add('hidden');
             }
         };
 
